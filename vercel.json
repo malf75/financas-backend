@@ -3,7 +3,8 @@
     "builds": [
       {
         "src": "main.py",
-        "use": "@vercel/python"
+        "use": "@vercel/python",
+        "config": { "installCommand": "poetry install" }
       }
     ],
     "routes": [
