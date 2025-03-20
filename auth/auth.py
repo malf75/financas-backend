@@ -88,8 +88,8 @@ async def m2f_verification(id: int, otp: str, db: db_dependency):
             query.primeiro_login = False
             query.qrcode = ''
             db.commit()
-            token = create_access_token(query.email, query.id, timedelta(hours=ACCESS_TOKEN_EXPIRE_TIME), timedelta(hours=REFRESH_TOKEN_EXPIRE_TIME))
-            return {"access_token": token, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"}
+            tokens = create_access_token(query.email, query.id, timedelta(hours=ACCESS_TOKEN_EXPIRE_TIME), timedelta(hours=REFRESH_TOKEN_EXPIRE_TIME))
+            return {"tokens": tokens}
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="OTP inválido")
