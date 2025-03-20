@@ -68,7 +68,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
                 return {"id":user.id}
             return {"id":user.id,"primeiro_login":user.primeiro_login}
     except Exception as e:
-        return {"message":f"Erro ao realizar login: {e}"}
+        raise HTTPException(status_code=400, detail=f"Erro ao realizar login: {e}")
 
 @router.get("/qr/{id}")
 async def qrcode(id: int, db: db_dependency):
