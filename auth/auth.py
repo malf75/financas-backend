@@ -26,10 +26,6 @@ class CreateUserRequest(BaseModel):
     email: EmailStr
     password: str
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
 db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
@@ -65,7 +61,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
                                 detail="Credenciais incorretas")
         if user.primeiro_login == True:
             return RedirectResponse(f"/auth/qr/{user.id}", status_code=status.HTTP_302_FOUND)
-        return {"primeiro_login":user.primeiro_login}
+        return {"id":user.id,"primeiro_login":user.primeiro_login}
     except Exception as e:
         return {"message":f"Erro ao realizar login: {e}"}
 
