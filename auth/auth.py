@@ -115,7 +115,7 @@ def authenticate_user(email: str, password: str, db):
                                 detail="Credenciais Incorretas")
         return query
     except Exception as e:
-        return {"message":f"Erro ao autenticar usuário {e}"}
+        return False
 
 def create_access_token(email: str, user_id: int, access_expires_delta: timedelta, refresh_expires_delta: timedelta):
     try:
