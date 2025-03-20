@@ -31,25 +31,30 @@ db_dependency = Annotated[Session, Depends(get_db)]
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       create_user_request: CreateUserRequest):
-    try:
-        secret_encoded, qrcode = gera_m2f(create_user_request.email)
-        create_user_model = Usuario(
-            nome=create_user_request.nome,
-            email=create_user_request.email,
-            senha=bcrypt_context.hash(create_user_request.password),
-            secret_key=secret_encoded,
-            qrcode=qrcode
-        )
-        query = select(Usuario).where(Usuario.email == create_user_model.email)
-        consulta = db.exec(query).first()
-        if consulta:
-            raise HTTPException(status_code=400, detail="Usuário Já Existente")
-        else:
-            db.add(create_user_model)
-            db.commit()
-            return {"201": "Usuário Criado"}
-    except Exception as e:
-        return {"message":f"Erro ao criar usuário: {e}"}
+    if create_user_request.nome == '' or null:
+        raise HTTPException(status_code=400, detail="O campo de nome deve ser preenchido")
+    if create_user_request.password == '' or null:
+        raise HTTPException(status_code=400, detail="O campo de senha deve ser preenchido")
+    else:
+        try:
+            secret_encoded, qrcode = gera_m2f(create_user_request.email)
+            create_user_model = Usuario(
+                nome=create_user_request.nome,
+                email=create_user_request.email,
+                senha=bcrypt_context.hash(create_user_request.password),
+                secret_key=secret_encoded,
+                qrcode=qrcode
+            )
+            query = select(Usuario).where(Usuario.email == create_user_model.email)
+            consulta = db.exec(query).first()
+            if consulta:
+                raise HTTPException(status_code=400, detail="Usuário Já Existente")
+            else:
+                db.add(create_user_model)
+                db.commit()
+                return {"201": "Usuário Criado"}
+        except Exception as e:
+            return {"message":f"Erro ao criar usuário: {e}"}
 
 @router.post("/login")
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
