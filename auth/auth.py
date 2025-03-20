@@ -130,7 +130,8 @@ def create_access_token(email: str, user_id: int, access_expires_delta: timedelt
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=f"Erro ao gerar token o usuário:{e}")
-
+    
+@router.get("/user")
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
