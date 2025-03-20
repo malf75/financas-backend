@@ -48,7 +48,7 @@ async def create_user(db: db_dependency,
             query = select(Usuario).where(Usuario.email == create_user_model.email)
             consulta = db.exec(query).first()
             if consulta:
-                raise HTTPException(status_code=400, detail="Usuário Já Existente")
+                raise {"status_code":status.HTTP_409_CONFLICT, "message":"Email já existente"}
             else:
                 db.add(create_user_model)
                 db.commit()
