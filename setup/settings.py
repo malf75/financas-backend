@@ -28,7 +28,8 @@ email_conf = ConnectionConfig(
 )
 
 origins = [
-    "https://unima-jao-client.vercel.app"
+    "https://unima-jao-client.vercel.app",
+    "http://localhost:3000"
 ]
 
 app.add_middleware(
