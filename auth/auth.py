@@ -31,9 +31,9 @@ db_dependency = Annotated[Session, Depends(get_db)]
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       create_user_request: CreateUserRequest):
-    if create_user_request.nome == '' or null:
+    if create_user_request.nome == '' or create_user_request.nome == null:
         raise HTTPException(status_code=400, detail="O campo de nome deve ser preenchido")
-    if create_user_request.password == '' or null:
+    if create_user_request.password == '' or create_user_request.password == null:
         raise HTTPException(status_code=400, detail="O campo de senha deve ser preenchido")
     else:
         try:
