@@ -11,7 +11,7 @@ KEY = os.getenv('KEY')
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
 DATABASE_URL = str(os.getenv('DATABASE_URL'))
 ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_TIME = 5
+ACCESS_TOKEN_EXPIRE_TIME = 1
 REFRESH_TOKEN_EXPIRE_TIME = 24
 
 email_conf = ConnectionConfig(
