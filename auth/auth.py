@@ -9,7 +9,7 @@ from database.models import Usuario
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
-from setup.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_HOURS
+from setup.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_TIME, REFRESH_TOKEN_EXPIRE_TIME
 from pydantic import BaseModel, EmailStr
 from auth.m2f import *
 
@@ -88,8 +88,8 @@ async def m2f_verification(id: int, otp: str, db: db_dependency):
             query.primeiro_login = False
             query.qrcode = ''
             db.commit()
-            token = create_access_token(query.email, query.id, timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
-            return {"access_token": token, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_HOURS} Hours"}
+            token = create_access_token(query.email, query.id, timedelta(hours=ACCESS_TOKEN_EXPIRE_TIME), timedelta(hours=REFRESH_TOKEN_EXPIRE_TIME))
+            return {"access_token": token, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"}
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="OTP inválido")
@@ -116,12 +116,17 @@ def authenticate_user(email: str, password: str, db):
     except Exception as e:
         return {"message":f"Erro ao autenticar usuário {e}"}
 
-def create_access_token(email: str, user_id: int, expires_delta: timedelta):
+def create_access_token(email: str, user_id: int, access_expires_delta: timedelta, refresh_expires_delta: timedelta):
     try:
-        encode = {"sub": email, "id": user_id}
-        expires = datetime.now(timezone.utc) + expires_delta
-        encode.update({"exp": expires})
-        return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+        access_encode = {"sub": email, "id": user_id}
+        access_expires = datetime.now(timezone.utc) + access_expires_delta
+        access_encode.update({"exp": access_expires})
+        refresh_encode = {"sub": email, "id": user_id}
+        refresh_expires = datetime.now(timezone.utc) + refresh_expires_delta
+        refresh_encode.update({"exp": refresh_expires})
+        access_jwt = jwt.encode(access_encode, SECRET_KEY, algorithm=ALGORITHM)
+        refresh_jwt = jwt.encode(refresh_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return [{"access_token": access_jwt, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=f"Erro ao gerar token o usuário:{e}")
@@ -138,4 +143,3 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail=f"Erro ao verificar o usuário:{e}")
-    

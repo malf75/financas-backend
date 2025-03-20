@@ -11,7 +11,8 @@ KEY = os.getenv('KEY')
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
 DATABASE_URL = str(os.getenv('DATABASE_URL'))
 ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_HOURS = 360
+ACCESS_TOKEN_EXPIRE_TIME = 5
+REFRESH_TOKEN_EXPIRE_TIME = 24
 
 email_conf = ConnectionConfig(
     MAIL_USERNAME=str(os.getenv('MAIL_USERNAME')),
@@ -27,7 +28,7 @@ email_conf = ConnectionConfig(
 )
 
 origins = [
-    "*"
+    "https://unima-jao-client.vercel.app/"
 ]
 
 app.add_middleware(
