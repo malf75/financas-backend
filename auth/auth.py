@@ -74,7 +74,7 @@ async def qrcode(id: int, db: db_dependency):
     try:
         statement = select(Usuario).where(Usuario.id == id)
         query = db.exec(statement).first()
-        return {"qrcode": query.qrcode}
+        return {"qrcode": query.qrcode, "id":f"{id}"}
     except Exception as e:
         return {"message":f"Erro ao requisitar qrcode: {e}"}
 
