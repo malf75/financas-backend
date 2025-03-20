@@ -54,7 +54,7 @@ async def create_user(db: db_dependency,
                 db.commit()
                 return {"201": "Usuário Criado"}
         except Exception as e:
-            return {"message":f"Erro ao criar usuário: {e}"}
+            raise HTTPException(status_code=400, detail=f"Erro ao criar usuário: {e}")
 
 @router.post("/login")
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
