@@ -2,7 +2,6 @@ import pyotp
 import segno
 import base64
 import io
-import json
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from setup.settings import KEY, email_conf
@@ -26,7 +25,7 @@ def gera_m2f(email):
         qr = segno.make(uri)
 
         byte_io = io.BytesIO()
-        qr.save(byte_io, kind="png")
+        qr.save(byte_io, kind="png", scale=10)
         qr_data = byte_io.getvalue()
 
         qr_base64 = base64.b64encode(qr_data).decode("utf-8")
