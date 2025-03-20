@@ -3,7 +3,7 @@ from setup.settings import DATABASE_URL
 
 engine = create_engine(f"{DATABASE_URL}", echo=True)
 
-SessionLocal = Session(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = Session(autocommit=True, autoflush=False, bind=engine)
 
 def get_db():
     with Session(engine) as session:
