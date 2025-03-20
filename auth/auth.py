@@ -65,7 +65,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Credenciais incorretas")
         if user.primeiro_login == True:
-            return RedirectResponse(f"/auth/qr/{user.id}", status_code=status.HTTP_302_FOUND)
+            return {"id":user.id}
         return {"id":user.id,"primeiro_login":user.primeiro_login}
     except Exception as e:
         return {"message":f"Erro ao realizar login: {e}"}
