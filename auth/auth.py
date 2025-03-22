@@ -163,7 +163,9 @@ async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oaut
                                     detail="Refresh token expirou, refaça o login.")
             else:
                 if query.refresh_token == refresh_token:
-                    return create_access_token(query.email, query.id)
+                    token = create_access_token(query.email, query.id)
+                    query.refresh_token = token[1]
+                    return token
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
                                 detail=f"Ocorreu um erro ao verificar o token: {e}")
