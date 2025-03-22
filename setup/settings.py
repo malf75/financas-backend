@@ -10,9 +10,9 @@ app = FastAPI()
 KEY = os.getenv('KEY')
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
 DATABASE_URL = str(os.getenv('DATABASE_URL'))
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_TIME = 1
-REFRESH_TOKEN_EXPIRE_TIME = 24
+ALGORITHM = str(os.getenv('ALGORITHM'))
+ACCESS_TOKEN_EXPIRE_TIME = float(os.getenv('ACCESS_TOKEN_EXPIRE_TIME'))
+REFRESH_TOKEN_EXPIRE_TIME = int(os.getenv('REFRESH_TOKEN_EXPIRE_TIME'))
 
 email_conf = ConnectionConfig(
     MAIL_USERNAME=str(os.getenv('MAIL_USERNAME')),
@@ -28,8 +28,8 @@ email_conf = ConnectionConfig(
 )
 
 origins = [
-    "https://unima-jao-client.vercel.app",
-    "http://localhost:3000"
+    str(os.getenv('APP_URL')),
+    str(os.getenv('DEV_URL'))
 ]
 
 app.add_middleware(

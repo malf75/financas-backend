@@ -89,7 +89,7 @@ async def m2f_verification(id: int, otp: str, db: db_dependency):
             query.primeiro_login = False
             query.qrcode = ''
             db.commit()
-            tokens = create_access_token(query.email, query.id, timedelta(hours=ACCESS_TOKEN_EXPIRE_TIME), timedelta(hours=REFRESH_TOKEN_EXPIRE_TIME))
+            tokens = create_access_token(query.email, query.id)
             return {"tokens": tokens}
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -117,16 +117,19 @@ def authenticate_user(email: str, password: str, db):
     except Exception as e:
         return False
 
-def create_access_token(email: str, user_id: int, access_expires_delta: timedelta, refresh_expires_delta: timedelta):
+def create_access_token(email: str, user_id: int, db: db_dependency):
     try:
         access_encode = {"sub": email, "id": user_id}
-        access_expires = datetime.now(timezone.utc) + access_expires_delta
+        access_expires = datetime.now(timezone.utc) + timedelta(hours=ACCESS_TOKEN_EXPIRE_TIME)
         access_encode.update({"exp": access_expires})
         refresh_encode = {"sub": email, "id": user_id}
-        refresh_expires = datetime.now(timezone.utc) + refresh_expires_delta
+        refresh_expires = datetime.now(timezone.utc) + timedelta(hours=REFRESH_TOKEN_EXPIRE_TIME)
         refresh_encode.update({"exp": refresh_expires})
         access_jwt = jwt.encode(access_encode, SECRET_KEY, algorithm=ALGORITHM)
         refresh_jwt = jwt.encode(refresh_encode, SECRET_KEY, algorithm=ALGORITHM)
+        user = select(Usuario).where(usuario.id == user_id)
+        query = db.exec(user).first()
+        query.refresh_token = refresh_jwt
         return [{"access_token": access_jwt, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -135,7 +138,7 @@ def create_access_token(email: str, user_id: int, access_expires_delta: timedelt
 @router.get("/user")
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = await jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         user_id: int = payload.get("id")
         if email is None or user_id is None:
@@ -145,3 +148,22 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail=f"Erro ao verificar o usuário:{e}")
+
+@router.post("/token/refresh")
+async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer)]):
+    user = select(Usuario).where(Usuario.id == user_id)
+    query = db.exec(user).first()
+    refresh = await jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+    exp_timestamp = refresh.get("exp")
+    if exp_timestamp:
+        try:
+            exp_datetime = datetime.fromtimestamp(exp_timestamp, timezone.utc)
+            if datetime.now(timezone)>exp_datetime:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail="Refresh token expirou, refaça o login.")
+            else:
+                if query.refresh_token == refresh_token:
+                    return create_access_token(query.email, query.id)
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+                                detail=f"Ocorreu um erro ao verificar o token: {e}")
