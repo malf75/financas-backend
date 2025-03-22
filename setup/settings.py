@@ -11,7 +11,7 @@ KEY = os.getenv('KEY')
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
 DATABASE_URL = str(os.getenv('DATABASE_URL'))
 ALGORITHM = str(os.getenv('ALGORITHM'))
-ACCESS_TOKEN_EXPIRE_TIME = float(os.getenv('ACCESS_TOKEN_EXPIRE_TIME'))
+ACCESS_TOKEN_EXPIRE_TIME = float(str(os.getenv('ACCESS_TOKEN_EXPIRE_TIME')))
 REFRESH_TOKEN_EXPIRE_TIME = int(os.getenv('REFRESH_TOKEN_EXPIRE_TIME'))
 
 email_conf = ConnectionConfig(
