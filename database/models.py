@@ -18,7 +18,7 @@ class Usuario(SQLModel, table=True):
     secret_key: str = Field(nullable=False)
     qrcode: str = Field(nullable=True)
     primeiro_login: bool = Field(default=True)
-    refresh_token: str = Field()
+    refresh_token: str = Field(nullable=True)
 
 class ContaBancaria(SQLModel, table=True):
     __tablename__ = 'conta_bancaria'
