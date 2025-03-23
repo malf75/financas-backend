@@ -8,6 +8,7 @@ load_dotenv(override=True)
 app = FastAPI()
 
 KEY = os.getenv('KEY')
+APP_URL = os.getenv('APP_URL')
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
 DATABASE_URL = str(os.getenv('DATABASE_URL'))
 ALGORITHM = str(os.getenv('ALGORITHM'))

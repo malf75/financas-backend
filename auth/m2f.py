@@ -4,7 +4,7 @@ import base64
 import io
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
-from setup.settings import KEY, email_conf
+from setup.settings import KEY, email_conf, APP_URL
 from fastapi_mail import FastMail, MessageSchema
 from database.models import Usuario
 from sqlmodel import select, Session
@@ -73,7 +73,9 @@ async def recupera_m2f(email_to: str, db:Session):
 
         qr_base64 = base64.b64encode(qr_data).decode("utf-8")
 
-        body = templates.get_template('email.html').render(qrcode=str(qr_base64), title="Recuperação do Autenticador", name="QR Code:")
+        result.qrcode = qr_base64
+
+        body = templates.get_template('email.html').render(url=f"{APP_URL}/login", title="Recuperação do Autenticador", message="Seu qrcode foi gerado, refaça o login para recuperar o autenticador:")
 
         message = MessageSchema(
             subject="Recuperação do Autenticador",

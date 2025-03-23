@@ -1,8 +1,8 @@
 
 ''' Este script é responsável por resetar e criar as tabelas no banco de dados.'''
 
-from sqlmodel import SQLModel, engine
-from sqlalchemy.orm import Session
+from db import engine
+from sqlmodel import SQLModel, Session
 
 def create_db_and_tables():
     print("Criando tabelas no banco de dados...")

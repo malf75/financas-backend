@@ -15,10 +15,21 @@ class Usuario(SQLModel, table=True):
     transacoes: List['Transacao'] = Relationship(back_populates="usuario", cascade_delete=True)
     conta_bancaria: List['ContaBancaria'] = Relationship(back_populates="usuario", cascade_delete=True)
     categoria: List['Categoria'] = Relationship(back_populates="usuario", cascade_delete=True)
+    recupera_senha: List['RecuperaSenha'] = Relationship(back_populates="usuario", cascade_delete=True)
     secret_key: str = Field(nullable=False)
     qrcode: str = Field(nullable=True)
     primeiro_login: bool = Field(default=True)
     refresh_token: str = Field(nullable=True)
+
+class RecuperaSenha(SQLModel, table=True):
+    __tablename__ = 'recupera_senha'
+
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    usuario_id: int = Field(foreign_key="usuarios.id")
+    usuario: Usuario = Relationship(back_populates="recupera_senha")
+    token: str = Field()
+    criado_em: datetime = Field(default_factory=datetime.now)
+    
 
 class ContaBancaria(SQLModel, table=True):
     __tablename__ = 'conta_bancaria'

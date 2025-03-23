@@ -1,3 +1,4 @@
+import base64
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
@@ -5,11 +6,11 @@ from fastapi.responses import RedirectResponse
 from sqlmodel import Session, select
 from starlette import status
 from database.db import get_db
-from database.models import Usuario
+from database.models import Usuario, RecuperaSenha
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
-from setup.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_TIME, REFRESH_TOKEN_EXPIRE_TIME
+from setup.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_TIME, REFRESH_TOKEN_EXPIRE_TIME, APP_URL, email_conf
 from pydantic import BaseModel, EmailStr
 from auth.m2f import *
 
@@ -169,3 +170,30 @@ async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oaut
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
                                 detail=f"Ocorreu um erro ao verificar o token: {e}")
+
+@router.post("/recoverpassword")
+async def token_recupera_senha(email: EmailStr, db: db_dependency):
+    try:
+        user = select(Usuario).where(Usuario.email == email)
+        query = db.exec(user).first()
+        token = base64.b64encode(email).decode("utf-8")
+        cria_token = RecuperaSenha(
+            usuario_id = query.id,
+            token = token
+        )
+
+        body = templates.get_template('email.html').render(url=str(f"{APP_URL}/recoverpassword?token={token}"), title="Recuperação de senha", message="Seu link de recuperação de senha foi gerado:")
+
+        message = MessageSchema(
+            subject="Recuperação de Senha",
+            recipients=[email],
+            body=body,
+            subtype='html',
+            headers={"Content-Type": "text/html; charset=UTF-8"}
+        )
+
+        fm = FastMail(email_conf)
+        await fm.send_message(message)
+        return {"message":"Email de Recuperação Enviado"}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Erro ao gerar email de recuperação: {e}")
