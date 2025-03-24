@@ -151,7 +151,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
                             detail=f"Erro ao verificar o usuário:{e}")
 
 @router.post("/token/refresh")
-async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer):
+async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
     user = select(Usuario).where(Usuario.id == user_id)
     query = db.exec(user).first()
     refresh = await jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
