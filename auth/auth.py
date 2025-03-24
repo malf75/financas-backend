@@ -2,7 +2,6 @@ import base64
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import RedirectResponse
 from sqlmodel import Session, select
 from starlette import status
 from database.db import get_db
@@ -139,7 +138,6 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
 @router.get("/user")
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     try:
-        print(token)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         user_id: int = payload.get("id")
@@ -153,9 +151,11 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 
 @router.post("/token/refresh/")
 async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
+    print(refresh_token)
     user = select(Usuario).where(Usuario.id == user_id)
     query = db.exec(user).first()
     refresh = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+    print(refresh)
     exp_timestamp = refresh.get("exp")
     if exp_timestamp:
         try:
