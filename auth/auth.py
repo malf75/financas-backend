@@ -131,7 +131,7 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
         user = select(Usuario).where(Usuario.id == user_id)
         query = db.exec(user).first()
         query.refresh_token = refresh_jwt
-        return [{"access_token": access_jwt, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
+        return [{"access_token": access_jwt, "token_type": "Bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "Bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=f"Erro ao gerar token o usuário:{e}")
@@ -150,7 +150,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail=f"Erro ao verificar o usuário:{e}")
 
-@router.post("/token/refresh")
+@router.post("/token/refresh/")
 async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
     user = select(Usuario).where(Usuario.id == user_id)
     query = db.exec(user).first()
