@@ -140,7 +140,7 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     try:
         print(token)
-        payload = await jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         user_id: int = payload.get("id")
         if email is None or user_id is None:
@@ -155,7 +155,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
     user = select(Usuario).where(Usuario.id == user_id)
     query = db.exec(user).first()
-    refresh = await jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+    refresh = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
     exp_timestamp = refresh.get("exp")
     if exp_timestamp:
         try:
