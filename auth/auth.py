@@ -90,7 +90,7 @@ async def m2f_verification(id: int, otp: str, db: db_dependency):
             query.primeiro_login = False
             query.qrcode = ''
             db.commit()
-            tokens = create_access_token(query.email, query.id)
+            tokens = create_access_token(query.email, query.id, db:db_dependency)
             return {"tokens": tokens}
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -164,7 +164,7 @@ async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oaut
                                     detail="Refresh token expirou, refaça o login.")
             else:
                 if query.refresh_token == refresh_token:
-                    token = create_access_token(query.email, query.id)
+                    token = create_access_token(query.email, query.id, db: db_dependency)
                     query.refresh_token = token[1]
                     return token
         except Exception as e:
