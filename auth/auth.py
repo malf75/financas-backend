@@ -128,7 +128,7 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
         refresh_encode.update({"exp": refresh_expires})
         access_jwt = jwt.encode(access_encode, SECRET_KEY, algorithm=ALGORITHM)
         refresh_jwt = jwt.encode(refresh_encode, SECRET_KEY, algorithm=ALGORITHM)
-        user = select(Usuario).where(usuario.id == user_id)
+        user = select(Usuario).where(Usuario.id == user_id)
         query = db.exec(user).first()
         query.refresh_token = refresh_jwt
         return [{"access_token": access_jwt, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
