@@ -6,6 +6,7 @@ from database.db import get_db
 from controller.conta_bancaria_controller import *
 from controller.transacao_controller import *
 from controller.categoria_controller import *
+from controller.dashboard_controller import *
 from sqlmodel import Session
 from fastapi import Depends
 import os
@@ -20,8 +21,9 @@ def redirect_index():
     return RedirectResponse("/docs")
 
 @app.get("/dashboard")
-async def rota_dashboard(user: user_dependency):
-    pass
+async def rota_dashboard(user: user_dependency, db: Session = Depends(get_db)):
+    results = await retorna_dashboard(user, db)
+    return results
 
 @app.get("/contabancaria")
 async def rota_conta_bancaria(user: user_dependency, db: Session = Depends(get_db)):

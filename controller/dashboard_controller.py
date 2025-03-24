@@ -2,3 +2,26 @@ from sqlmodel import select, Session
 from database.models import ContaBancaria, Usuario, Transacao
 from fastapi import HTTPException
 
+async def retorna_dashboard(user, db:Session):
+    try:
+        statement = select(Usuario).where(Usuario.id == user["id"])
+        query_user = await db.exec(statement).first()
+        saldo_total = query_user.saldo_usuario
+
+        statement = select(ContaBancaria).where(ContaBancaria.usuario_id == user["id"])
+        query_contas = await db.exec(statement).all()
+
+        statement = select(Transacao).where(Transacao.usuario_id == user.id, Transacao.tipo_id == 0)
+        query_receitas = await db.exec(statement).all()
+
+        statement = select(Transacao).where(Transacao.usuario_id == user.id, Transacao.tipo_id == 1)
+        query_despesas = await db.exec(statement).all()
+
+        return {"dados":[
+            {"saldo_conta": saldo_total},
+            {"contas": query_contas},
+            {"receitas": query_receitas},
+            {"despesas": query_despesas}
+        ]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erro ao retornar dados: {e}")
