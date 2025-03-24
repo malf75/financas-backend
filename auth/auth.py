@@ -151,11 +151,9 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 
 @router.post("/token/refresh/")
 async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
-    print(refresh_token)
     user = select(Usuario).where(Usuario.id == user_id)
     query = db.exec(user).first()
     refresh = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-    print(refresh)
     exp_timestamp = refresh.get("exp")
     if exp_timestamp:
         try:
@@ -164,9 +162,11 @@ async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oaut
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                     detail="Refresh token expirou, refaça o login.")
             else:
+                print("chegou no else")
                 if query.refresh_token == refresh_token:
                     token = create_access_token(query.email, query.id, db)
                     query.refresh_token = token[1]
+                    print(token)
                     return token
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
