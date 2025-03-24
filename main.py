@@ -42,8 +42,11 @@ async def rota_cria_transacao(valor: float, tipo: int, categoria: str, user: use
 
 @app.get("/categorias")
 async def rota_categorias(user: user_dependency, db: Session = Depends(get_db)):
-    result = await retorna_categorias(user, db)
-    return result
+    try:
+        result = await retorna_categorias(user, db)
+        return result
+    except Exception as e:
+        return {"erro": str(e)}
 
 @app.get("/transacoes/receitas")
 async def rota_receitas(user: user_dependency, db: Session = Depends(get_db)):
