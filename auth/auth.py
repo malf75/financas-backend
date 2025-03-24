@@ -162,10 +162,11 @@ async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oaut
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                     detail="Refresh token expirou, refaça o login.")
             else:
-                print("chegou no else")
                 if query.refresh_token == refresh_token:
+                    print("chegou no if")
                     token = create_access_token(query.email, query.id, db)
                     query.refresh_token = token[1]
+                    print(query.refresh_token)
                     print(token)
                     return token
         except Exception as e:
