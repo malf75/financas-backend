@@ -22,23 +22,35 @@ def redirect_index():
 
 @app.get("/dashboard")
 async def rota_dashboard(user: user_dependency, db: Session = Depends(get_db)):
-    results = await retorna_dashboard(user, db)
-    return results
+    try:
+        results = await retorna_dashboard(user, db)
+        return results
+    except Exception as e:
+        return {"erro": str(e)}
 
 @app.get("/contabancaria")
 async def rota_conta_bancaria(user: user_dependency, db: Session = Depends(get_db)):
-    results = await retorna_contas_usuario(user, db)
-    return results
+    try:
+        results = await retorna_contas_usuario(user, db)
+        return results
+    except Exception as e:
+        return {"erro": str(e)}
 
 @app.post("/contabancaria/criaconta")
 async def rota_cria_conta(nome: str, saldo_conta: float, user: user_dependency, db: Session = Depends(get_db)):
-    result = await cria_conta_usuario(nome, saldo_conta, user, db)
-    return result
+    try:
+        result = await cria_conta_usuario(nome, saldo_conta, user, db)
+        return result
+    except Exception as e:
+        return {"erro": str(e)}
 
 @app.post("/criatransacao")
 async def rota_cria_transacao(valor: float, tipo: int, categoria: str, user: user_dependency, db: Session = Depends(get_db), conta: int | None = None):
-    result = await cria_transacao(valor, tipo, categoria, user, db, conta)
-    return result
+    try:
+        result = await cria_transacao(valor, tipo, categoria, user, db, conta)
+        return result
+    except Exception as e:
+        return {"erro": str(e)}
 
 @app.get("/categorias")
 async def rota_categorias(user: user_dependency, db: Session = Depends(get_db)):
@@ -50,13 +62,19 @@ async def rota_categorias(user: user_dependency, db: Session = Depends(get_db)):
 
 @app.get("/transacoes/receitas")
 async def rota_receitas(user: user_dependency, db: Session = Depends(get_db)):
-    result = await retorna_receitas(user, db)
-    return result
+    try:
+        result = await retorna_receitas(user, db)
+        return result
+    except Exception as e:
+        return {"erro": str(e)}
 
 @app.get("/transacoes/despesas")
 async def rota_despesas(user: user_dependency, db: Session = Depends(get_db)):
-    result = await retorna_despesas(user, db)
-    return result
+    try:
+        result = await retorna_despesas(user, db)
+        return result
+    except Exception as e:
+        return {"erro": str(e)}
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
