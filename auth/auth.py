@@ -89,13 +89,15 @@ async def m2f_verification(id: int, otp: str, db: db_dependency):
         if verify == True:
             query.primeiro_login = False
             query.qrcode = ''
+            tokens = create_access_token(query.email, query.id, db)
+            query.refresh_token = tokens[1]["refresh_token"]
             db.commit()
-            tokens = create_access_token(query.email, query.id)
             return {"tokens": tokens}
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="OTP inválido")
     except Exception as e:
+        print(e)
         return {"message":f"Erro ao verificar OTP: {e}"}
     
 @router.get("/m2f/recovery/{id}")
@@ -128,7 +130,7 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
         refresh_encode.update({"exp": refresh_expires})
         access_jwt = jwt.encode(access_encode, SECRET_KEY, algorithm=ALGORITHM)
         refresh_jwt = jwt.encode(refresh_encode, SECRET_KEY, algorithm=ALGORITHM)
-        user = select(Usuario).where(usuario.id == user_id)
+        user = select(Usuario).where(Usuario.id == user_id)
         query = db.exec(user).first()
         query.refresh_token = refresh_jwt
         return [{"access_token": access_jwt, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
@@ -138,8 +140,9 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
     
 @router.get("/user")
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
+    print(token)
     try:
-        payload = await jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         user_id: int = payload.get("id")
         if email is None or user_id is None:
@@ -151,20 +154,21 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
                             detail=f"Erro ao verificar o usuário:{e}")
 
 @router.post("/token/refresh")
-async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer)]):
+async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
     user = select(Usuario).where(Usuario.id == user_id)
     query = db.exec(user).first()
-    refresh = await jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+    refresh = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
     exp_timestamp = refresh.get("exp")
     if exp_timestamp:
         try:
             exp_datetime = datetime.fromtimestamp(exp_timestamp, timezone.utc)
-            if datetime.now(timezone)>exp_datetime:
+            if datetime.now(timezone.utc)>exp_datetime:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                     detail="Refresh token expirou, refaça o login.")
             else:
+                print(query.refresh_token, refresh_token)
                 if query.refresh_token == refresh_token:
-                    token = create_access_token(query.email, query.id)
+                    token = create_access_token(query.email, query.id, db)
                     query.refresh_token = token[1]
                     return token
         except Exception as e:

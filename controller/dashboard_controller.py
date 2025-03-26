@@ -11,10 +11,10 @@ async def retorna_dashboard(user, db:Session):
         statement = select(ContaBancaria).where(ContaBancaria.usuario_id == user["id"])
         query_contas = await db.exec(statement).all()
 
-        statement = select(Transacao).where(Transacao.usuario_id == user.id, Transacao.tipo_id == 0)
+        statement = select(Transacao).where(Transacao.usuario_id == user["id"], Transacao.tipo_id == 1)
         query_receitas = await db.exec(statement).all()
 
-        statement = select(Transacao).where(Transacao.usuario_id == user.id, Transacao.tipo_id == 1)
+        statement = select(Transacao).where(Transacao.usuario_id == user["id"], Transacao.tipo_id == 2)
         query_despesas = await db.exec(statement).all()
 
         return {"dados":[
