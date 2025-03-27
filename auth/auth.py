@@ -163,7 +163,6 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_bearer)], d
         try:
             exp_datetime = datetime.fromtimestamp(exp_timestamp, timezone.utc)
             if datetime.now(timezone.utc)>exp_datetime:
-            if datetime.now(timezone.utc)>exp_datetime:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                     detail="Refresh token expirou, refaça o login.")
             else:
