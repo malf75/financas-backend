@@ -63,13 +63,13 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     try:
         user = authenticate_user(form_data.username, form_data.password, db)
         if user == False:
-            raise HTTPException(status_code=400, detail=f"Erro ao realizar login: {e}")
+            raise HTTPException(status_code=400, detail=f"Erro ao realizar login")
         else:
             if user.primeiro_login == True:
                 return {"id":user.id}
             return {"id":user.id,"primeiro_login":user.primeiro_login}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao realizar login: {e}")
+        raise HTTPException(status_code=401, detail=f"Erro ao realizar login: {e}")
 
 @router.get("/qr/{id}")
 async def qrcode(id: int, db: db_dependency):
@@ -97,7 +97,6 @@ async def m2f_verification(id: int, otp: str, db: db_dependency):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="OTP inválido")
     except Exception as e:
-        print(e)
         return {"message":f"Erro ao verificar OTP: {e}"}
     
 @router.get("/m2f/recovery/{id}")
@@ -140,11 +139,11 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
     
 @router.get("/user")
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
-    print(token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         user_id: int = payload.get("id")
+        print(f"email: {email}, id:{user_id}, exp: {payload.get("exp")}")
         if email is None or user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Não pode verificar o usuário.")
@@ -154,10 +153,11 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
                             detail=f"Erro ao verificar o usuário:{e}")
 
 @router.post("/token/refresh")
-async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
-    user = select(Usuario).where(Usuario.id == user_id)
-    query = db.exec(user).first()
+async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
     refresh = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+    id = refresh.get("id")
+    user = select(Usuario).where(Usuario.id == id)
+    query = db.exec(user).first()
     exp_timestamp = refresh.get("exp")
     if exp_timestamp:
         try:
@@ -166,14 +166,14 @@ async def refresh_token(user_id: int, refresh_token: Annotated[str, Depends(oaut
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                     detail="Refresh token expirou, refaça o login.")
             else:
-                print(query.refresh_token, refresh_token)
                 if query.refresh_token == refresh_token:
                     token = create_access_token(query.email, query.id, db)
-                    query.refresh_token = token[1]
+                    query.refresh_token = token[1]["refresh_token"]
+                    db.commit()
                     return token
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
-                                detail=f"Ocorreu um erro ao verificar o token: {e}")
+                                detail=f"Ocorreu um erro ao verificar o token: {e} token: {refresh_token}")
 
 @router.post("/recoverpassword")
 async def token_recupera_senha(email: EmailStr, db: db_dependency):
