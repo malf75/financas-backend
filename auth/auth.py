@@ -2,7 +2,6 @@ import base64
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import RedirectResponse
 from sqlmodel import Session, select
 from starlette import status
 from database.db import get_db
@@ -132,7 +131,8 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
         user = select(Usuario).where(Usuario.id == user_id)
         query = db.exec(user).first()
         query.refresh_token = refresh_jwt
-        return [{"access_token": access_jwt, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
+        db.commit()
+        return [{"access_token": access_jwt, "token_type": "Bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "Bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=f"Erro ao gerar token o usuário:{e}")
@@ -163,9 +163,11 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_bearer)], d
         try:
             exp_datetime = datetime.fromtimestamp(exp_timestamp, timezone.utc)
             if datetime.now(timezone.utc)>exp_datetime:
+            if datetime.now(timezone.utc)>exp_datetime:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                     detail="Refresh token expirou, refaça o login.")
             else:
+                print(query.refresh_token)
                 if query.refresh_token == refresh_token:
                     token = create_access_token(query.email, query.id, db)
                     query.refresh_token = token[1]["refresh_token"]
