@@ -2,29 +2,31 @@ from fastapi.responses import RedirectResponse
 from setup.settings import app
 from auth.auth import router, get_current_user
 from typing import Annotated
-from database.db import get_db
+from database.db import get_db, engine
 from controller.conta_bancaria_controller import *
 from controller.transacao_controller import *
 from controller.categoria_controller import *
 from controller.dashboard_controller import *
-from sqlmodel import Session
+from sqlmodel import Session, SQLModel
 from fastapi import Depends
 import os
 import uvicorn
 
 class ContaBancariaRequest(BaseModel):
     nome: str
-    saldo: float
+    saldo: int
 
 class TransacaoRequest(BaseModel):
-    valor: float 
-    tipo: int 
+    valor: int
+    tipo: int
     categoria: str
     conta: int | None = None
 
 app.include_router(router)
 user_dependency = Annotated[dict, Depends(get_current_user)]
 db = Annotated[Session, Depends(get_db)]
+
+SQLModel.metadata.create_all(engine)
 
 @app.get("/")
 def redirect_index():
