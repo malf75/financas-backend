@@ -16,10 +16,11 @@ class ContaBancariaRequest(BaseModel):
     nome: str
     saldo: float
 
-class TransicaoRequest(BaseModel):
+class TransacaoRequest(BaseModel):
     valor: float 
     tipo: int 
     categoria: str
+    conta: int | None = None
 
 app.include_router(router)
 user_dependency = Annotated[dict, Depends(get_current_user)]
@@ -47,6 +48,7 @@ async def rota_conta_bancaria(user: user_dependency, db: Session = Depends(get_d
 
 @app.post("/contabancaria/criaconta")
 async def rota_cria_conta(create_conta: ContaBancariaRequest, user: user_dependency, db: Session = Depends(get_db)):
+    print(f"conta: {create_conta} \n user: {user}")
     try:
         result = await cria_conta_usuario(create_conta.nome, create_conta.saldo, user, db)
         return result
@@ -54,9 +56,9 @@ async def rota_cria_conta(create_conta: ContaBancariaRequest, user: user_depende
         return {"erro": str(e)}
 
 @app.post("/criatransacao")
-async def rota_cria_transacao(transicao: TransicaoRequest, user: user_dependency, db: Session = Depends(get_db), conta: int | None = None):
+async def rota_cria_transacao(transacao: TransacaoRequest, user: user_dependency, db: Session = Depends(get_db)):
     try:
-        result = await cria_transacao(transicao.valor, transicao.tipo, transicao.categoria, user, db, conta)
+        result = await cria_transacao(transacao.valor, transacao.tipo, transacao.categoria, user, db, transacao.conta)
         return result
     except Exception as e:
         return {"erro": str(e)}
