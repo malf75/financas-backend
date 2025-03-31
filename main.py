@@ -12,6 +12,10 @@ from fastapi import Depends
 import os
 import uvicorn
 
+class ContaBancariaRequest(BaseModel):
+    nome: str
+    saldo: float
+
 app.include_router(router)
 user_dependency = Annotated[dict, Depends(get_current_user)]
 db = Annotated[Session, Depends(get_db)]
@@ -37,9 +41,9 @@ async def rota_conta_bancaria(user: user_dependency, db: Session = Depends(get_d
         return {"erro": str(e)}
 
 @app.post("/contabancaria/criaconta")
-async def rota_cria_conta(nome: str, saldo_conta: float, user: user_dependency, db: Session = Depends(get_db)):
+async def rota_cria_conta(create_conta: ContaBancariaRequest, user: user_dependency, db: Session = Depends(get_db)):
     try:
-        result = await cria_conta_usuario(nome, saldo_conta, user, db)
+        result = await cria_conta_usuario(create_conta.nome, create_conta.saldo, user, db)
         return result
     except Exception as e:
         return {"erro": str(e)}
