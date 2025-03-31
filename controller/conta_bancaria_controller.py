@@ -1,6 +1,11 @@
 from sqlmodel import select, Session
 from database.models import ContaBancaria, Usuario
 from fastapi import HTTPException
+from pydantic import BaseModel
+
+class ContaBancariaRequest(BaseModel):
+    nome: str
+    saldo: float
 
 
 async def retorna_contas_usuario(user, db: Session):
@@ -14,12 +19,12 @@ async def retorna_contas_usuario(user, db: Session):
     except Exception as e:
         return {"message":f"Erro ao requisitar contas bancárias do usuário: {e}"}
 
-async def cria_conta_usuario(nome, saldo_conta, user, db: Session):
+async def cria_conta_usuario(create_conta: ContaBancariaRequest, user, db: Session):
     try:
         cria_conta = ContaBancaria(
             usuario_id=user['id'],
-            nome=nome,
-            saldo_conta=saldo_conta
+            nome=create_conta.nome,
+            saldo_conta=create_conta.saldo
         )
         query = select(ContaBancaria).where(ContaBancaria.nome == cria_conta.nome, ContaBancaria.usuario_id == user['id'])
         consulta = db.exec(query).first()
@@ -30,7 +35,7 @@ async def cria_conta_usuario(nome, saldo_conta, user, db: Session):
             db.commit()
             query = select(Usuario).where(Usuario.id == user['id'])
             usuario = db.exec(query).first()
-            usuario.saldo_usuario += saldo_conta
+            usuario.saldo_usuario += create_conta.saldo
             db.commit()
             return {"201": "Conta Criada"}
     except Exception as e:
