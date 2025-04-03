@@ -176,7 +176,7 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_bearer)], d
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
                                 detail=f"Ocorreu um erro ao verificar o token: {e} token: {refresh_token}")
 
-@router.post("/recoverpassword")
+@router.post("/recuperasenha")
 async def token_recupera_senha(email: EmailStr, db: db_dependency):
     try:
         user = select(Usuario).where(Usuario.email == email)
@@ -205,7 +205,7 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Erro ao gerar email de recuperação: {e}")
     
-@router.post("/recoverpassword/{token}")
+@router.post("/recuperasenha/{token}")
 async def recupera_senha(token: str, nova_senha: str, db: db_dependency):
     try:
         query = select(RecuperaSenha).where(RecuperaSenha.token == token)
