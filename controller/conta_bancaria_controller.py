@@ -2,6 +2,7 @@ from sqlmodel import select, Session
 from database.models import ContaBancaria, Usuario
 from fastapi import HTTPException
 from pydantic import BaseModel
+from starlette import status
 
 async def retorna_contas_usuario(user, db: Session):
     try:
@@ -35,3 +36,14 @@ async def cria_conta_usuario(nome, saldo_conta, user, db: Session):
             return {"201": "Conta Criada"}
     except Exception as e:
         return {"message":f"Erro ao criar conta bancária do usuário: {e}"}
+    
+async def deleta_conta_bancaria_usuario(id, user, db: Session):
+    try:
+        query = select(ContaBancaria).where(ContaBancaria.id == id, ContaBancaria.usuario_id == user["id"])
+        conta = db.exec(query).first()
+        db.delete(conta)
+        db.commit()
+        return {"200":"Conta deletada"}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao deletar conta")
+

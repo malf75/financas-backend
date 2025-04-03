@@ -50,9 +50,16 @@ async def rota_conta_bancaria(user: user_dependency, db: Session = Depends(get_d
 
 @app.post("/contabancaria/criaconta")
 async def rota_cria_conta(create_conta: ContaBancariaRequest, user: user_dependency, db: Session = Depends(get_db)):
-    print(f"conta: {create_conta} \n user: {user}")
     try:
         result = await cria_conta_usuario(create_conta.nome, create_conta.saldo, user, db)
+        return result
+    except Exception as e:
+        return {"erro": str(e)}
+    
+@app.delete("/contabancaria")
+async def deleta_conta_bancaria(id: int, user: user_dependency, db: Session = Depends(get_db)):
+    try:
+        result = await deleta_conta_bancaria_usuario(id,user,db)
         return result
     except Exception as e:
         return {"erro": str(e)}
@@ -69,6 +76,14 @@ async def rota_cria_transacao(transacao: TransacaoRequest, user: user_dependency
 async def rota_categorias(user: user_dependency, db: Session = Depends(get_db)):
     try:
         result = await retorna_categorias(user, db)
+        return result
+    except Exception as e:
+        return {"erro": str(e)}
+    
+@app.delete("/categorias")
+async def deleta_categoria(id: int, user: user_dependency, db: Session = Depends(get_db)):
+    try:
+        result = await deleta_categorias(id, user, db)
         return result
     except Exception as e:
         return {"erro": str(e)}
