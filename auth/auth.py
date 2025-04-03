@@ -181,7 +181,7 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
     try:
         user = select(Usuario).where(Usuario.email == email)
         query = db.exec(user).first()
-        token = bcrypt_context.hash(email)
+        token = bcrypt_context.hash(email).replace("/[./]/g",'')
         cria_token = RecuperaSenha(
             usuario_id = query.id,
             token = token
