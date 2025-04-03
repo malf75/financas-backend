@@ -204,7 +204,10 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
         return {"message":"Email de Recuperação Enviado"}
     except Exception as e:
-        raise HTTPException(status_code=e.status_code,detail=f"Erro ao gerar email de recuperação: {e}")
+        if e.status_code:
+            raise HTTPException(status_code=e.status_code,detail=f"Erro ao gerar email de recuperação: {e}")
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Erro ao gerar email de recuperação: {e}")
     
 @router.post("/recuperasenha/{token}")
 async def recupera_senha(token: str, nova_senha: str, db: db_dependency):
