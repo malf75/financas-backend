@@ -1,4 +1,4 @@
-import base64
+import re
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
@@ -181,7 +181,7 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
     try:
         user = select(Usuario).where(Usuario.email == email)
         query = db.exec(user).first()
-        token = bcrypt_context.hash(email).replace("/[./]/g",'')
+        token = re.sub(r'[./\]','',bcrypt_context.hash(email))
         cria_token = RecuperaSenha(
             usuario_id = query.id,
             token = token
