@@ -188,6 +188,7 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
         )
         db.add(cria_token)
         db.commit()
+        print("o commit chegou!")
         try:
             body = templates.get_template('email.html').render(url=str(f"{APP_URL}/recoverpassword?token={token}"), title="Recuperação de senha", message="Seu link de recuperação de senha foi gerado:")
             message = MessageSchema(
