@@ -190,7 +190,7 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
         db.commit()
         print("o commit chegou!")
         try:
-            body = templates.get_template('email.html').render(url=str(f"{APP_URL}/recoverpassword?token={token}"), title="Recuperação de senha", message="Seu link de recuperação de senha foi gerado:")
+            body = templates.get_template('email.html').render(url=str(f"{APP_URL}/recover/{token}"), title="Recuperação de senha", message="Seu link de recuperação de senha foi gerado:")
             message = MessageSchema(
                 subject="Recuperação de Senha",
                 recipients=[email],
@@ -204,7 +204,7 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
         return {"message":"Email de Recuperação Enviado"}
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Erro ao gerar email de recuperação: {e}")
+        raise HTTPException(status_code=e.status_code,detail=f"Erro ao gerar email de recuperação: {e}")
     
 @router.post("/recuperasenha/{token}")
 async def recupera_senha(token: str, nova_senha: str, db: db_dependency):
