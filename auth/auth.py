@@ -188,19 +188,19 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
         )
         db.add(cria_token)
         db.commit()
-
-        body = templates.get_template('email.html').render(url=str(f"{APP_URL}/recoverpassword?token={token}"), title="Recuperação de senha", message="Seu link de recuperação de senha foi gerado:")
-
-        message = MessageSchema(
-            subject="Recuperação de Senha",
-            recipients=[email],
-            body=body,
-            subtype='html',
-            headers={"Content-Type": "text/html; charset=UTF-8"}
-        )
-
-        fm = FastMail(email_conf)
-        await fm.send_message(message)
+        try:
+            body = templates.get_template('email.html').render(url=str(f"{APP_URL}/recoverpassword?token={token}"), title="Recuperação de senha", message="Seu link de recuperação de senha foi gerado:")
+            message = MessageSchema(
+                subject="Recuperação de Senha",
+                recipients=[email],
+                body=body,
+                subtype='html',
+                headers={"Content-Type": "text/html; charset=UTF-8"}
+            )
+            fm = FastMail(email_conf)
+            await fm.send_message(message)
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
         return {"message":"Email de Recuperação Enviado"}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Erro ao gerar email de recuperação: {e}")
