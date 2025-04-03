@@ -181,14 +181,13 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
     try:
         user = select(Usuario).where(Usuario.email == email)
         query = db.exec(user).first()
-        token = re.sub(r'[./\]','',bcrypt_context.hash(email))
+        token = re.sub(r'[./\\]','',bcrypt_context.hash(email))
         cria_token = RecuperaSenha(
             usuario_id = query.id,
             token = token
         )
         db.add(cria_token)
         db.commit()
-        print("o commit chegou!")
         try:
             body = templates.get_template('email.html').render(url=str(f"{APP_URL}/recover?token={token}"), title="Recuperação de senha", message="Seu link de recuperação de senha foi gerado:")
             message = MessageSchema(
