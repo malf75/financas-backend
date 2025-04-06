@@ -24,4 +24,4 @@ async def retorna_dashboard(user, db:Session):
             {"despesas": query_despesas}
         ]}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao retornar dados: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro ao retornar dados: {e}")
