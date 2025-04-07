@@ -1,7 +1,7 @@
 from sqlmodel import select, Session
 from database.models import ContaBancaria, Usuario
 from fastapi import HTTPException
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 from starlette import status
 
 async def retorna_contas_usuario(user, db: Session):
@@ -13,7 +13,7 @@ async def retorna_contas_usuario(user, db: Session):
             raise HTTPException(status_code=404, detail="Usuário não possui contas bancárias")
         return results
     except Exception as e:
-        return {"message":f"Erro ao requisitar contas bancárias do usuário: {e}"}
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao requisitar contas bancárias do usuário: {e}")
 
 async def cria_conta_usuario(nome, saldo_conta, user, db: Session):
     try:
@@ -25,7 +25,7 @@ async def cria_conta_usuario(nome, saldo_conta, user, db: Session):
         query = select(ContaBancaria).where(ContaBancaria.nome == cria_conta.nome, ContaBancaria.usuario_id == user['id'])
         consulta = db.exec(query).first()
         if consulta:
-            raise HTTPException(status_code=400, detail="Conta Bancária Já Registrada")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Conta bancária já registrada")
         else:
             db.add(cria_conta)
             db.commit()
@@ -33,9 +33,9 @@ async def cria_conta_usuario(nome, saldo_conta, user, db: Session):
             usuario = db.exec(query).first()
             usuario.saldo_usuario += saldo_conta
             db.commit()
-            return {"201": "Conta Criada"}
+            return JSONResponse(status_code=status.HTTP_201_CREATED, content="Conta bancária criada com sucesso")
     except Exception as e:
-        return {"message":f"Erro ao criar conta bancária do usuário: {e}"}
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao criar conta bancária do usuário: {e}")
     
 async def edita_conta_bancaria_usuario(id, nome, saldo_conta, user, db: Session):
     try:
@@ -57,7 +57,7 @@ async def edita_conta_bancaria_usuario(id, nome, saldo_conta, user, db: Session)
             conta.saldo_conta = saldo_conta
         db.add(conta)
         db.commit()
-        return {"200":"Conta editada"}
+        return JSONResponse(status_code=status.HTTP_200_OK, content="Conta bancária editada com sucesso")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao editar conta")
     
@@ -67,7 +67,7 @@ async def deleta_conta_bancaria_usuario(id, user, db: Session):
         conta = db.exec(query).first()
         db.delete(conta)
         db.commit()
-        return {"200":"Conta deletada"}
+        return JSONResponse(status_code=status.HTTP_200_OK, content="Conta bancária deletada com sucesso")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao deletar conta")
 

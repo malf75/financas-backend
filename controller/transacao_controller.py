@@ -1,6 +1,7 @@
 from sqlmodel import select, Session
 from database.models import ContaBancaria, Usuario, Transacao, Categoria
 from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from services.huggingAPI import hugging_api_request
 from starlette import status
 
@@ -55,7 +56,7 @@ async def cria_transacao(valor, tipo, categoria, user, db:Session, conta):
 
         db.commit()
 
-        return {"201": "Transação criada com sucesso!"}
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content="Transação criada com sucesso!")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao criar transação: {e}")
     
@@ -114,7 +115,7 @@ async def edita_transacao(valor, tipo, categoria, user, db:Session, id_transacao
                         conta = db.exec(query).first()
                         conta.saldo_conta += transacao.valor - valor
         db.commit()
-        return {"200":"Transação editada"}
+        return JSONResponse(status_code=status.HTTP_200_OK, content="Transação editada com sucesso!")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao editar transação: {e}")
     
@@ -124,9 +125,9 @@ async def deleta_transacao(id_transacao, user, db:Session):
         transacao = db.exec(query).first()
         db.delete(transacao)
         db.commit()
-        return {"200":"Transação deletada"}
+        return JSONResponse(status_code=status.HTTP_200_OK, content="Transação deletada com sucesso!")
     except Exception as e:
-        return {"message":f"Erro ao deletar transação: {e}"}
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao deletar transação: {e}")
 
 async def retorna_receitas(user, db:Session):
     try:
@@ -135,9 +136,9 @@ async def retorna_receitas(user, db:Session):
         if not receitas:
             raise HTTPException(status_code=404, detail="Nenhuma receita encontrada")
         response = hugging_api_request(receitas)
-        return {"Receitas": receitas, "Dicas": response}
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"Receitas": receitas, "Dicas": response})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao retornar receitas do usuário: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar receitas do usuário: {e}")
 
 
 async def retorna_despesas(user, db: Session):
@@ -147,8 +148,8 @@ async def retorna_despesas(user, db: Session):
         if not despesas:
             raise HTTPException(status_code=404, detail="Nenhuma despesa encontrada")
         response = hugging_api_request(despesas)
-        return {"Despesas": despesas, "Dicas": response}
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"Despesas": despesas, "Dicas": response})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao retornar despesas do usuário: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar despesas do usuário: {e}")
 
 

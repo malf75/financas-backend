@@ -3,6 +3,7 @@ from sqlalchemy import or_
 from database.models import Categoria
 from fastapi import HTTPException
 from starlette import status
+from fastapi.responses import JSONResponse
 
 
 async def retorna_categorias(user, db: Session):
@@ -24,7 +25,7 @@ async def cria_categoria(tipo, categoria, user, db: Session):
         )
         db.add(categoria)
         db.commit()
-        return {"message":"Categoria criada com sucesso!"}
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content="Categoria criada com sucesso")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao criar categoria")
     
@@ -40,7 +41,7 @@ async def edita_categoria(id, tipo, categoria, user, db: Session):
             categoria_db.categoria = categoria
         db.add(categoria_db)
         db.commit()
-        return {"message":"Categoria editada"}
+        return JSONResponse(status_code=status.HTTP_200_OK, content="Categoria editada com sucesso")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao editar categoria")
     
@@ -50,6 +51,6 @@ async def deleta_categorias(id,user,db:Session):
         categoria = db.exec(query).first()
         db.delete(categoria)
         db.commit()
-        return {"message":"Categoria deletada"}
+        return JSONResponse(status_code=status.HTTP_200_OK, content="Categoria deletada com sucesso")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao deletar categoria")
