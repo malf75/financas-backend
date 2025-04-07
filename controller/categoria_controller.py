@@ -15,6 +15,19 @@ async def retorna_categorias(user, db: Session):
     except Exception as e:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao retornar categorias")
     
+async def cria_categoria(tipo, categoria, user, db: Session):
+    try:
+        categoria = new Categoria(
+            usuario_id=user['id'],
+            tipo_id=tipo,
+            categoria=categoria
+        )
+        db.add(categoria)
+        db.commit()
+        return {"message":"Categoria criada com sucesso!"}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao criar categoria")
+    
 async def edita_categoria(id, tipo, categoria, user, db: Session):
     try:
         query = select(Categoria).where(Categoria.id == id, Categoria.usuario_id == user['id'])

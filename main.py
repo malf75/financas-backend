@@ -39,6 +39,10 @@ class EditaCategoriaRequest(BaseModel):
     tipo: int | None = None
     categoria: str | None = None
 
+class CriaCategoriaRequest(BaseModel):
+    tipo: int
+    categoria: str
+
 app.include_router(router)
 user_dependency = Annotated[dict, Depends(get_current_user)]
 db = Annotated[Session, Depends(get_db)]
@@ -121,8 +125,12 @@ async def rota_categorias(user: user_dependency, db: Session = Depends(get_db)):
     except Exception as e:
         return {e}
     
+@app.post("/categorias")
+async def rota_cria_categorias(categoria: CriaCategoriaRequest, user: user_dependency, db: Session = Depends(get_db)):
+    try
+    
 @app.patch("/categorias")
-async def edita_categoria(categoria: EditaCategoriaRequest, user: user_dependency, db: Session = Depends(get_db)):
+async def rota_edita_categoria(categoria: EditaCategoriaRequest, user: user_dependency, db: Session = Depends(get_db)):
     try:
         result = await edita_categoria(categoria.id, categoria.tipo, categoria.categoria, user, db)
         return result
@@ -130,7 +138,7 @@ async def edita_categoria(categoria: EditaCategoriaRequest, user: user_dependenc
         return {e}
     
 @app.delete("/categorias")
-async def deleta_categoria(id: int, user: user_dependency, db: Session = Depends(get_db)):
+async def rota_deleta_categoria(id: int, user: user_dependency, db: Session = Depends(get_db)):
     try:
         result = await deleta_categorias(id, user, db)
         return result
