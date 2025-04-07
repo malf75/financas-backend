@@ -16,11 +16,28 @@ class ContaBancariaRequest(BaseModel):
     nome: str
     saldo: int
 
+class EditaContaBancariaRequest(BaseModel):
+    id: int
+    nome: str | None = None
+    saldo: int | None = None
+
 class TransacaoRequest(BaseModel):
     valor: int
     tipo: int
     categoria: str
     conta: int | None = None
+
+class EditaTransacaoRequest(BaseModel):
+    id: int
+    valor: int | None = None
+    tipo: int | None = None
+    categoria: str | None = None
+    conta: int | None = None
+
+class EditaCategoriaRequest(BaseModel):
+    id: int
+    tipo: int | None = None
+    categoria: str | None = None
 
 app.include_router(router)
 user_dependency = Annotated[dict, Depends(get_current_user)]
@@ -54,15 +71,23 @@ async def rota_cria_conta(create_conta: ContaBancariaRequest, user: user_depende
         result = await cria_conta_usuario(create_conta.nome, create_conta.saldo, user, db)
         return result
     except Exception as e:
-        return {"erro": str(e)}
+        return {e}
+    
+@app.patch("/contabancaria/editaconta")
+async def rota_edita_conta(edit_conta: EditaContaBancariaRequest, user: user_dependency, db: Session = Depends(get_db)):
+    try:
+        result = await edita_conta_bancaria_usuario(edit_conta.id, edit_conta.nome, edit_conta.saldo, user, db)
+        return result
+    except Exception as e:
+        return {e}
     
 @app.delete("/contabancaria")
-async def deleta_conta_bancaria(id: int, user: user_dependency, db: Session = Depends(get_db)):
+async def rota_deleta_conta_bancaria(id: int, user: user_dependency, db: Session = Depends(get_db)):
     try:
         result = await deleta_conta_bancaria_usuario(id,user,db)
         return result
     except Exception as e:
-        return {"erro": str(e)}
+        return {e}
 
 @app.post("/criatransacao")
 async def rota_cria_transacao(transacao: TransacaoRequest, user: user_dependency, db: Session = Depends(get_db)):
@@ -70,7 +95,23 @@ async def rota_cria_transacao(transacao: TransacaoRequest, user: user_dependency
         result = await cria_transacao(transacao.valor, transacao.tipo, transacao.categoria, user, db, transacao.conta)
         return result
     except Exception as e:
-        return {"erro": str(e)}
+        return {e}
+    
+@app.patch("/editatransacao")
+async def rota_edita_transacao(transacao: EditaTransacaoRequest, user: user_dependency, db: Session = Depends(get_db)):
+    try:
+        result = await edita_transacao(transacao.valor, transacao.tipo, transacao.categoria, user, db, transacao.conta)
+        return result
+    except Exception as e:
+        return {e}
+    
+@app.delete("/apagatransacao")
+async def rota_deleta_transacao(id: int, user: user_dependency, db: Session = Depends(get_db)):
+    try:
+        result = await deleta_transacao(id, user, db)
+        return result
+    except Exception as e:
+        return {e}
 
 @app.get("/categorias")
 async def rota_categorias(user: user_dependency, db: Session = Depends(get_db)):
@@ -78,7 +119,15 @@ async def rota_categorias(user: user_dependency, db: Session = Depends(get_db)):
         result = await retorna_categorias(user, db)
         return result
     except Exception as e:
-        return {"erro": str(e)}
+        return {e}
+    
+@app.patch("/categorias")
+async def edita_categoria(categoria: EditaCategoriaRequest, user: user_dependency, db: Session = Depends(get_db)):
+    try:
+        result = await edita_categoria(categoria.id, categoria.tipo, categoria.categoria, user, db)
+        return result
+    except Exception as e:
+        return {e}
     
 @app.delete("/categorias")
 async def deleta_categoria(id: int, user: user_dependency, db: Session = Depends(get_db)):
@@ -86,7 +135,7 @@ async def deleta_categoria(id: int, user: user_dependency, db: Session = Depends
         result = await deleta_categorias(id, user, db)
         return result
     except Exception as e:
-        return {"erro": str(e)}
+        return {e}
 
 @app.get("/transacoes/receitas")
 async def rota_receitas(user: user_dependency, db: Session = Depends(get_db)):
@@ -94,7 +143,7 @@ async def rota_receitas(user: user_dependency, db: Session = Depends(get_db)):
         result = await retorna_receitas(user, db)
         return result
     except Exception as e:
-        return {"erro": str(e)}
+        return {e}
 
 @app.get("/transacoes/despesas")
 async def rota_despesas(user: user_dependency, db: Session = Depends(get_db)):
@@ -102,7 +151,7 @@ async def rota_despesas(user: user_dependency, db: Session = Depends(get_db)):
         result = await retorna_despesas(user, db)
         return result
     except Exception as e:
-        return {"erro": str(e)}
+        return {e}
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
