@@ -19,7 +19,7 @@ async def retorna_dashboard(user, db:Session):
         query_despesas = db.exec(statement).all()
 
         response = hugging_api_request(
-            f"Saldo_conta: {saldo_total},Contas: {query_contas}, Receitas: {query_receitas}, Despesas: {query_despesas}"
+            f"Saldo_total: {saldo_total},Contas: {query_contas}, Receitas: {query_receitas}, Despesas: {query_despesas}"
         )
 
         return {"dados":[
