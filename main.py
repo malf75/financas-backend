@@ -38,7 +38,7 @@ async def rota_dashboard(user: user_dependency, db: Session = Depends(get_db)):
         results = await retorna_dashboard(user, db)
         return results
     except Exception as e:
-        return {"erro": str(e)}
+        return {e}
 
 @app.get("/contabancaria")
 async def rota_conta_bancaria(user: user_dependency, db: Session = Depends(get_db)):
@@ -46,7 +46,7 @@ async def rota_conta_bancaria(user: user_dependency, db: Session = Depends(get_d
         results = await retorna_contas_usuario(user, db)
         return results
     except Exception as e:
-        return {"erro": str(e)}
+        return {e}
 
 @app.post("/contabancaria/criaconta")
 async def rota_cria_conta(create_conta: ContaBancariaRequest, user: user_dependency, db: Session = Depends(get_db)):

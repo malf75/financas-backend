@@ -1,6 +1,7 @@
 from sqlmodel import select, Session
 from database.models import ContaBancaria, Usuario, Transacao, Categoria
 from fastapi import HTTPException
+from services.huggingAPI import hugging_api_request
 
 async def cria_transacao(valor, tipo, categoria, user, db:Session, conta):
     try:
@@ -64,7 +65,8 @@ async def retorna_receitas(user, db:Session):
         receitas = db.exec(query).all()
         if not receitas:
             raise HTTPException(status_code=404, detail="Nenhuma receita encontrada")
-        return receitas
+        response = hugging_api_request(receitas)
+        return {"Receitas": receitas, "Dicas": response}
     except Exception as e:
         return {"message":f"Erro ao retornar receitas do usuário: {e}"}
 
@@ -75,7 +77,8 @@ async def retorna_despesas(user, db: Session):
         despesas = db.exec(query).all()
         if not despesas:
             raise HTTPException(status_code=404, detail="Nenhuma despesa encontrada")
-        return despesas
+        response = hugging_api_request(despesas)
+        return {"Despesas": despesas, "Dicas": response}
     except Exception as e:
         return {"message":f"Erro ao retornar despesas do usuário: {e}"}
 
