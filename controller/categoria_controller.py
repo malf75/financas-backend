@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 async def retorna_categorias(user, db: Session):
     try:
-        query = select(Categoria).where(Categoria.usuario_id == user['id'], Categoria.usuario_id == None)
+        query = select(Categoria).where(Categoria.usuario_id == user['id'])
         categorias = db.exec(query).all()
         if not categorias:
             raise HTTPException(status_code=404, detail="Nenhuma categoria encontrada")
