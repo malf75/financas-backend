@@ -24,12 +24,12 @@ async def retorna_dashboard(user, db:Session):
             f"Saldo_total: {saldo_total}, Contas_bancarias: {query_contas}, Receitas: {query_receitas}, Despesas: {query_despesas}"
         )
 
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"dados":[
+        return {"dados":[
             {"saldo_conta": saldo_total},
             {"contas": query_contas},
             {"receitas": query_receitas},
             {"despesas": query_despesas},
             response
-        ]})
+        ]}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar dados: {e}")

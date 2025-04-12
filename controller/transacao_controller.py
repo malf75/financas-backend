@@ -135,8 +135,7 @@ async def retorna_receitas(user, db:Session):
         receitas = db.exec(query).all()
         if not receitas:
             raise HTTPException(status_code=404, detail="Nenhuma receita encontrada")
-        response = hugging_api_request(receitas)
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"Receitas": receitas, "Dicas": response})
+        return {"Receitas": receitas}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar receitas do usuário: {e}")
 
@@ -147,8 +146,7 @@ async def retorna_despesas(user, db: Session):
         despesas = db.exec(query).all()
         if not despesas:
             raise HTTPException(status_code=404, detail="Nenhuma despesa encontrada")
-        response = hugging_api_request(despesas)
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"Despesas": despesas, "Dicas": response})
+        return {"Despesas": despesas}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar despesas do usuário: {e}")
 

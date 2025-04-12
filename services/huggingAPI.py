@@ -10,9 +10,9 @@ def limpar_texto(texto):
 def hugging_api_request(dados):
     try:
         prompt = (
-            f"Com base nesses dados financeiros: {dados} "
-            "Forneça feedback sobre gastos e ganhos, e uma dica financeira em até 50 palavras. "
-            "Não retorne os dados enviados, apenas o feedback e a dica."
+            f"Based in this financial data: {dados}"
+            "Give me a Feedback based on the expenses and earnings, and a financial hint with a max of 50 words"
+            "Don't return the promt in the response, and consider using portuguese"
         )
 
         headers = {"Authorization": f"Bearer {HUGGING_TOKEN}"}
