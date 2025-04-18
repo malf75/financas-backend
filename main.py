@@ -1,4 +1,6 @@
 from fastapi.responses import RedirectResponse
+from sqlalchemy import DateTime
+
 from setup.settings import app
 from auth.auth import router, get_current_user
 from typing import Annotated
@@ -43,6 +45,12 @@ class EditaCategoriaRequest(BaseModel):
 class CriaCategoriaRequest(BaseModel):
     tipo: int
     categoria: str
+    
+class RetornaTransacoesRequest(BaseModel):
+    receitas: bool | None = None
+    despesas: bool | None = None
+    inicio: DateTime | None = None
+    fim: DateTime | None = None
 
 app.include_router(router)
 user_dependency = Annotated[dict, Depends(get_current_user)]
@@ -150,18 +158,10 @@ async def rota_deleta_categoria(id: int, user: user_dependency, db: Session = De
     except Exception as e:
         return e
 
-@app.get("/transacoes/receitas")
-async def rota_receitas(user: user_dependency, db: Session = Depends(get_db)):
+@app.get(f"/transacoes?receitas={RetornaTransacoesRequest.receitas}&despesas={RetornaTransacoesRequest.despesas}&inicio={RetornaTransacoesRequest.inicio}&fim={RetornaTransacoesRequest.fim}")
+async def rota_receitas(receitas, despesas, inicio, fim,user: user_dependency, db: Session = Depends(get_db)):
     try:
-        result = await retorna_receitas(user, db)
-        return result
-    except Exception as e:
-        return e
-
-@app.get("/transacoes/despesas")
-async def rota_despesas(user: user_dependency, db: Session = Depends(get_db)):
-    try:
-        result = await retorna_despesas(user, db)
+        result = await retorna_transacoes(receitas,despesas, inicio, fim,user, db)
         return result
     except Exception as e:
         return e

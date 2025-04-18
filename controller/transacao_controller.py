@@ -129,25 +129,20 @@ async def deleta_transacao(id_transacao, user, db:Session):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao deletar transação: {e}")
 
-async def retorna_receitas(user, db:Session):
+async def retorna_transacoes(receitas, despesas, inicio, fim, user, db:Session):
     try:
-        query = select(Transacao).where(Transacao.usuario_id == user['id'], Transacao.tipo_id == 1)
-        receitas = db.exec(query).all()
-        if not receitas:
-            raise HTTPException(status_code=404, detail="Nenhuma receita encontrada")
-        return {"Receitas": receitas}
+        query = select(Transacao).where(Transacao.usuario_id == user["id"])
+        if receitas:
+            query = query.where(Transacao.tipo_id == 1)
+        if despesas:
+            query = query.where(Transacao.tipo_id == 2)
+        if inicio:
+            query = query.where(inicio >= Transacao.data)
+        if fim:
+            query = query.where(fim >= Transacao.data)
+        transacoes = db.exec(query).all()
+        return {"Transacoes": transacoes}
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar receitas do usuário: {e}")
-
-
-async def retorna_despesas(user, db: Session):
-    try:
-        query = select(Transacao).where(Transacao.usuario_id == user['id'], Transacao.tipo_id == 2)
-        despesas = db.exec(query).all()
-        if not despesas:
-            raise HTTPException(status_code=404, detail="Nenhuma despesa encontrada")
-        return {"Despesas": despesas}
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar despesas do usuário: {e}")
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar transações: {e}")
 
 
