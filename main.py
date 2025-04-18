@@ -97,6 +97,14 @@ async def rota_deleta_conta_bancaria(id: int, user: user_dependency, db: Session
     except Exception as e:
         return e
 
+@app.get("/transacoes")
+async def rota_retorna_transacoes(user: user_dependency, receitas: Optional[bool] = None, despesas: Optional[bool] = None, inicio: Optional[datetime] = None, fim: Optional[datetime] = None, db: Session = Depends(get_db)):
+    try:
+        result = await retorna_transacoes(receitas,despesas, inicio, fim,user, db)
+        return result
+    except Exception as e:
+        return e
+
 @app.post("/criatransacao")
 async def rota_cria_transacao(transacao: TransacaoRequest, user: user_dependency, db: Session = Depends(get_db)):
     try:
@@ -153,13 +161,7 @@ async def rota_deleta_categoria(id: int, user: user_dependency, db: Session = De
     except Exception as e:
         return e
 
-@app.get("/transacoes?receitas={receitas}&despesas={despesas}&inicio={inicio}&fim={fim}")
-async def rota_receitas(receitas: bool | None, despesas: bool | None, inicio: datetime | None, fim: datetime | None,user: user_dependency, db: Session = Depends(get_db)):
-    try:
-        result = await retorna_transacoes(receitas,despesas, inicio, fim,user, db)
-        return result
-    except Exception as e:
-        return e
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
