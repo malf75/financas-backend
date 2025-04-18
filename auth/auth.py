@@ -143,7 +143,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         user_id: int = payload.get("id")
-        print(f"email: {email}, id:{user_id}, exp: {payload.get("exp")}")
         if email is None or user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Não pode verificar o usuário.")
@@ -166,7 +165,6 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_bearer)], d
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                     detail="Refresh token expirou, refaça o login.")
             else:
-                print(query.refresh_token)
                 if query.refresh_token == refresh_token:
                     token = create_access_token(query.email, query.id, db)
                     query.refresh_token = token[1]["refresh_token"]

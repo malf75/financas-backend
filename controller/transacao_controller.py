@@ -131,7 +131,6 @@ async def deleta_transacao(id_transacao, user, db:Session):
 
 async def retorna_transacoes(receitas, despesas, inicio, fim, user, db:Session):
     try:
-        print(receitas, despesas, inicio, fim)
         query = select(Transacao).where(Transacao.usuario_id == user["id"])
         if receitas:
             query = query.where(Transacao.tipo_id == 1)
