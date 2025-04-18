@@ -1,6 +1,6 @@
 from fastapi.responses import RedirectResponse
 from sqlalchemy import DateTime
-
+from typing import Optional
 from setup.settings import app
 from auth.auth import router, get_current_user
 from typing import Annotated
@@ -12,6 +12,7 @@ from controller.dashboard_controller import *
 from sqlmodel import Session, SQLModel
 from fastapi import Depends
 from pydantic import BaseModel
+from datetime import datetime
 import os
 import uvicorn
 
@@ -46,12 +47,6 @@ class CriaCategoriaRequest(BaseModel):
     tipo: int
     categoria: str
     
-class RetornaTransacoesRequest(BaseModel):
-    receitas: bool | None = None
-    despesas: bool | None = None
-    inicio: DateTime | None = None
-    fim: DateTime | None = None
-
 app.include_router(router)
 user_dependency = Annotated[dict, Depends(get_current_user)]
 db = Annotated[Session, Depends(get_db)]
@@ -158,8 +153,8 @@ async def rota_deleta_categoria(id: int, user: user_dependency, db: Session = De
     except Exception as e:
         return e
 
-@app.get(f"/transacoes?receitas={RetornaTransacoesRequest.receitas}&despesas={RetornaTransacoesRequest.despesas}&inicio={RetornaTransacoesRequest.inicio}&fim={RetornaTransacoesRequest.fim}")
-async def rota_receitas(receitas, despesas, inicio, fim,user: user_dependency, db: Session = Depends(get_db)):
+@app.get("/transacoes?receitas={receitas}&despesas={despesas}&inicio={inicio}&fim={fim}")
+async def rota_receitas(receitas: bool | None, despesas: bool | None, inicio: datetime | None, fim: datetime | None,user: user_dependency, db: Session = Depends(get_db)):
     try:
         result = await retorna_transacoes(receitas,despesas, inicio, fim,user, db)
         return result
