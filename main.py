@@ -1,5 +1,4 @@
 from fastapi.responses import RedirectResponse
-from sqlalchemy import DateTime
 from typing import Optional
 from setup.settings import app
 from auth.auth import router, get_current_user
