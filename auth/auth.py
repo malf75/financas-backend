@@ -157,22 +157,26 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_bearer)], d
     id = refresh.get("id")
     user = select(Usuario).where(Usuario.id == id)
     query = db.exec(user).first()
+    print(query)
     exp_timestamp = refresh.get("exp")
-    if exp_timestamp:
-        try:
-            exp_datetime = datetime.fromtimestamp(exp_timestamp, timezone.utc)
-            if datetime.now(timezone.utc)>exp_datetime:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                    detail="Refresh token expirou, refaça o login.")
-            else:
-                if query.refresh_token == refresh_token:
-                    token = create_access_token(query.email, query.id, db)
-                    query.refresh_token = token[1]["refresh_token"]
-                    db.commit()
-                    return token
-        except Exception as e:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
-                                detail=f"Ocorreu um erro ao verificar o token: {e} token: {refresh_token}")
+    try:
+        exp_datetime = datetime.fromtimestamp(exp_timestamp, timezone.utc)
+        print(exp_datetime)
+        print(datetime.now(timezone.utc))
+        if datetime.now(timezone.utc) > exp_datetime:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="Refresh token expirou, refaça o login.")
+        else:
+            print("ta caindo aqui")
+            print(query.refresh_token, " ", refresh_token)
+            if query.refresh_token == refresh_token:
+                print("é igual")
+                token = create_access_token(query.email, query.id, db)
+                db.commit()
+                return token
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Ocorreu um erro ao verificar o token: {e} token: {refresh_token}")
 
 @router.post("/recuperasenha")
 async def token_recupera_senha(email: EmailStr, db: db_dependency):
