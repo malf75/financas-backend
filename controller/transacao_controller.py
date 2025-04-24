@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from services.huggingAPI import hugging_api_request
 from starlette import status
 
-async def cria_transacao(valor, tipo, categoria, user, db:Session, conta):
+async def cria_transacao(descricao, valor, tipo, categoria, conta, user, db:Session):
     try:
         try:
             int(categoria)
@@ -28,7 +28,8 @@ async def cria_transacao(valor, tipo, categoria, user, db:Session, conta):
                 categoria_final = result.id
 
         cria_transacao = Transacao(
-            usuario_id=user['id'], 
+            usuario_id=user['id'],
+            descricao=descricao,
             conta_bancaria_id=conta, 
             tipo_id=tipo, 
             valor=valor, 
@@ -60,12 +61,15 @@ async def cria_transacao(valor, tipo, categoria, user, db:Session, conta):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao criar transação: {e}")
     
-async def edita_transacao(valor, tipo, categoria, user, db:Session, id_transacao):
+async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta_edicao, user, db: Session):
     try:
         query = select(Usuario).where(Usuario.id == user['id'])
         usuario = db.exec(query).first()
-        query = select(Transacao).where(Transacao.id == id_transacao, Transacao.usuario_id == user['id'])
+        query = select(Transacao).where(Transacao.id == id_transacao)
         transacao = db.exec(query).first()
+        if descricao:
+            transacao.descricao = descricao
+
         if categoria:
             try:
                 int(categoria)
@@ -76,44 +80,48 @@ async def edita_transacao(valor, tipo, categoria, user, db:Session, id_transacao
                 if result_igualdade:
                     categoria_final = result_igualdade.id
                 else:
-                    cria_categoria = Categoria(
+                    nova_categoria = Categoria(
                         usuario_id=user['id'],
                         tipo_id=tipo,
                         categoria=categoria
                     )
-                    db.add(cria_categoria)
+                    db.add(nova_categoria)
                     db.commit()
-                    query = select(Categoria).where(Categoria.categoria == categoria, Categoria.usuario_id == user['id'])
-                    result = db.exec(query).first()
-                    categoria_final = result.id
-                    transacao.categoria_id = categoria_final
-        if valor:
-            if tipo != None and tipo != transacao.tipo_id:
-                if tipo == 1:
-                    usuario.saldo_usuario += transacao.valor + valor
-                    if conta:
-                        query = select(ContaBancaria).where(ContaBancaria.id == conta)
-                        conta = db.exec(query).first()
-                        conta.saldo_conta += transacao.valor + valor
-                if tipo == 2:
-                    usuario.saldo_usuario -= valor - transacao.valor
-                    if conta:
-                        query = select(ContaBancaria).where(ContaBancaria.id == conta)
-                        conta = db.exec(query).first()
-                        conta.saldo_conta -= valor - transacao.valor
+                    db.refresh(nova_categoria)
+                    categoria_final = nova_categoria.id
+            transacao.categoria_id = categoria_final
+
+        if valor is not None and tipo is not None:
+            valor_antigo = transacao.valor
+            tipo_antigo = transacao.tipo_id
+
+            if tipo_antigo == 1:
+                usuario.saldo_usuario -= valor_antigo
             else:
+                usuario.saldo_usuario += valor_antigo
+
+            if tipo == 1:
+                usuario.saldo_usuario += valor
+            else:
+                usuario.saldo_usuario -= valor
+
+            if conta_edicao:
+                query = select(ContaBancaria).where(ContaBancaria.id == conta_edicao)
+                conta = db.exec(query).first()
+
+                if tipo_antigo == 1:
+                    conta.saldo_conta -= valor_antigo
+                else:
+                    conta.saldo_conta += valor_antigo
+
                 if tipo == 1:
-                    usuario.saldo_usuario -= transacao.valor + valor
-                    if conta:
-                        query = select(ContaBancaria).where(ContaBancaria.id == conta)
-                        conta = db.exec(query).first()
-                        conta.saldo_conta -= transacao.valor + valor
-                if tipo == 2:
-                    usuario.saldo_usuario += transacao.valor - valor
-                    if conta:
-                        query = select(ContaBancaria).where(ContaBancaria.id == conta)
-                        conta = db.exec(query).first()
-                        conta.saldo_conta += transacao.valor - valor
+                    conta.saldo_conta += valor
+                else:
+                    conta.saldo_conta -= valor
+
+            transacao.valor = valor
+            transacao.tipo_id = tipo
+
         db.commit()
         return JSONResponse(status_code=status.HTTP_200_OK, content="Transação editada com sucesso!")
     except Exception as e:

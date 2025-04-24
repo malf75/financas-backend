@@ -25,6 +25,7 @@ class EditaContaBancariaRequest(BaseModel):
     saldo: int | None = None
 
 class TransacaoRequest(BaseModel):
+    descricao: str
     valor: int
     tipo: int
     categoria: str
@@ -32,6 +33,7 @@ class TransacaoRequest(BaseModel):
 
 class EditaTransacaoRequest(BaseModel):
     id: int
+    descricao: str | None = None
     valor: int | None = None
     tipo: int | None = None
     categoria: str | None = None
@@ -107,7 +109,7 @@ async def rota_retorna_transacoes(user: user_dependency, receitas: Optional[bool
 @app.post("/criatransacao")
 async def rota_cria_transacao(transacao: TransacaoRequest, user: user_dependency, db: Session = Depends(get_db)):
     try:
-        result = await cria_transacao(transacao.valor, transacao.tipo, transacao.categoria, user, db, transacao.conta)
+        result = await cria_transacao(transacao.descricao, transacao.valor, transacao.tipo, transacao.categoria, transacao.conta, user, db)
         return result
     except Exception as e:
         return e
@@ -115,7 +117,7 @@ async def rota_cria_transacao(transacao: TransacaoRequest, user: user_dependency
 @app.patch("/editatransacao")
 async def rota_edita_transacao(transacao: EditaTransacaoRequest, user: user_dependency, db: Session = Depends(get_db)):
     try:
-        result = await edita_transacao(transacao.valor, transacao.tipo, transacao.categoria, user, db, transacao.conta)
+        result = await edita_transacao(transacao.id, transacao.descricao ,transacao.valor, transacao.tipo, transacao.categoria, transacao.conta, user, db)
         return result
     except Exception as e:
         return e

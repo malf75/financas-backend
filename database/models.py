@@ -73,6 +73,7 @@ class Transacao(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
     usuario_id: int = Field(foreign_key="usuarios.id")
+    descricao: str = Field(max_length=100, nullable=True)
     conta_bancaria_id: Optional[int] = Field(default=None, foreign_key="conta_bancaria.id")
     categoria_id: int = Field(foreign_key="categoria.id")
     tipo_id: int = Field(foreign_key="tipo.id")
