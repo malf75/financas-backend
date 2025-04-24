@@ -131,9 +131,7 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
         user = select(Usuario).where(Usuario.id == user_id)
         query = db.exec(user).first()
         query.refresh_token = refresh_jwt
-        print(refresh_jwt)
         db.commit()
-        print(query.refresh_token)
         return [{"access_token": access_jwt, "token_type": "Bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "Bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -161,18 +159,12 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_bearer)], d
         user = select(Usuario).where(Usuario.id == id)
         query = db.exec(user).first()
         exp_timestamp = refresh.get("exp")
-        print("teste")
         if query.refresh_token == refresh_token:
             exp_datetime = datetime.fromtimestamp(exp_timestamp, timezone.utc)
-            print(exp_datetime)
-            print(datetime.now(timezone.utc))
             if datetime.now(timezone.utc) > exp_datetime:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                     detail="Refresh token expirou, refaça o login.")
             else:
-                print("ta caindo aqui")
-                print(query.refresh_token, " ", refresh_token)
-                print("é igual")
                 token = create_access_token(query.email, query.id, db)
                 db.commit()
                 return token
