@@ -39,6 +39,7 @@ async def cria_conta_usuario(nome, saldo_conta, user, db: Session):
     
 async def edita_conta_bancaria_usuario(id, nome, saldo_conta, user, db: Session):
     try:
+        print(id, nome, saldo_conta)
         query = select(Usuario).where(Usuario.id == user['id'])
         usuario = db.exec(query).first()
         query = select(ContaBancaria).where(ContaBancaria.id == id, ContaBancaria.usuario_id == user['id'])
@@ -46,14 +47,12 @@ async def edita_conta_bancaria_usuario(id, nome, saldo_conta, user, db: Session)
         if not conta:
             raise HTTPException(status_code=404, detail="Conta bancária não encontrada")
         if nome:
+            print("Passou aqui")
             conta.nome = nome
         if saldo_conta:
-            if conta.saldo_conta < saldo_conta:
-                usuario.saldo_usuario += saldo_conta - conta.saldo_conta
-            elif conta.saldo_conta > saldo_conta:
-                usuario.saldo_usuario -= conta.saldo_conta - saldo_conta
-            else:
-                pass
+            print("Tem saldo")
+            usuario.saldo_usuario -= conta.saldo_conta
+            usuario.saldo_usuario += saldo_conta
             conta.saldo_conta = saldo_conta
         db.add(conta)
         db.commit()
