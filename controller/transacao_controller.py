@@ -107,7 +107,7 @@ async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta
 
             if tipo == 1:
                 usuario.saldo_usuario += valor
-            if tipo == 2:
+            else:
                 usuario.saldo_usuario -= valor
 
             if conta_edicao:
@@ -121,7 +121,7 @@ async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta
 
                 if tipo == 1:
                     conta.saldo_conta += valor
-                if tipo == 2:
+                else:
                     conta.saldo_conta -= valor
 
             transacao.valor = valor
