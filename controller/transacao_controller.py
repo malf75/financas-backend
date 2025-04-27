@@ -96,9 +96,11 @@ async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta
             print("commitou a categoria")
 
         if valor:
-            print("chegou aqui")
             valor_antigo = transacao.valor
             tipo_antigo = transacao.tipo_id
+
+            if not tipo:
+                tipo = tipo_antigo
 
             if tipo_antigo == 1:
                 usuario.saldo_usuario -= valor_antigo
