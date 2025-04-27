@@ -113,13 +113,15 @@ async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta
                 usuario.saldo_usuario -= valor
 
             if conta_edicao:
+                query = select(ContaBancaria).where(ContaBancaria.id == transacao.conta_bancaria_id)
+                conta_antiga = db.exec(query).first()
                 query = select(ContaBancaria).where(ContaBancaria.id == conta_edicao)
                 conta = db.exec(query).first()
 
                 if tipo_antigo == 1:
-                    conta.saldo_conta -= valor_antigo
+                    conta_antiga.saldo_conta -= valor_antigo
                 else:
-                    conta.saldo_conta += valor_antigo
+                    conta_antiga.saldo_conta += valor_antigo
 
                 if tipo == 1:
                     conta.saldo_conta += valor
