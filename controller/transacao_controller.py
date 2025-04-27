@@ -95,7 +95,7 @@ async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta
             transacao.categoria_id = categoria_final
             print("commitou a categoria")
 
-        if valor is not None and tipo is not None:
+        if valor:
             print("chegou aqui")
             valor_antigo = transacao.valor
             tipo_antigo = transacao.tipo_id
