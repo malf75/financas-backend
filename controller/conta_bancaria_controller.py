@@ -7,7 +7,6 @@ from starlette import status
 async def retorna_contas_usuario(user, db: Session):
     try:
         query = select(ContaBancaria).where(ContaBancaria.usuario_id == user['id'])
-        print(query)
         results = db.exec(query).all()
         if not results:
             raise HTTPException(status_code=404, detail="Usuário não possui contas bancárias")
@@ -39,7 +38,6 @@ async def cria_conta_usuario(nome, saldo_conta, user, db: Session):
     
 async def edita_conta_bancaria_usuario(id, nome, saldo_conta, user, db: Session):
     try:
-        print(id, nome, saldo_conta)
         query = select(Usuario).where(Usuario.id == user['id'])
         usuario = db.exec(query).first()
         query = select(ContaBancaria).where(ContaBancaria.id == id, ContaBancaria.usuario_id == user['id'])
@@ -47,10 +45,8 @@ async def edita_conta_bancaria_usuario(id, nome, saldo_conta, user, db: Session)
         if not conta:
             raise HTTPException(status_code=404, detail="Conta bancária não encontrada")
         if nome:
-            print("Passou aqui")
             conta.nome = nome
         if saldo_conta:
-            print("Tem saldo")
             usuario.saldo_usuario -= conta.saldo_conta
             usuario.saldo_usuario += saldo_conta
             conta.saldo_conta = saldo_conta

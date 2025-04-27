@@ -63,7 +63,6 @@ async def cria_transacao(descricao, valor, tipo, categoria, conta, user, db:Sess
     
 async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta_edicao, user, db: Session):
     try:
-        print(id_transacao, descricao, valor, tipo, categoria, conta_edicao)
         query = select(Usuario).where(Usuario.id == user['id'])
         usuario = db.exec(query).first()
         query = select(Transacao).where(Transacao.id == id_transacao)
@@ -73,7 +72,6 @@ async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta
             transacao.descricao = descricao
 
         if categoria:
-            print("chegou na categoria")
             try:
                 int(categoria)
                 categoria_final = categoria
@@ -93,7 +91,6 @@ async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta
                     db.refresh(nova_categoria)
                     categoria_final = nova_categoria.id
             transacao.categoria_id = categoria_final
-            print("commitou a categoria")
 
         if valor:
             valor_antigo = transacao.valor
@@ -132,7 +129,6 @@ async def edita_transacao(id_transacao, descricao, valor, tipo, categoria, conta
             transacao.tipo_id = tipo
 
         db.commit()
-        print("commitou tudo")
         return JSONResponse(status_code=status.HTTP_200_OK, content="Transação editada com sucesso!")
     except Exception as e:
         db.rollback()
