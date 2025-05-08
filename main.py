@@ -1,53 +1,20 @@
+import os
+import uvicorn
 from fastapi.responses import RedirectResponse
 from typing import Optional
 from setup.settings import app
 from auth.auth import router, get_current_user
 from typing import Annotated
 from database.db import get_db, engine
+from sqlmodel import SQLModel
+from fastapi import Depends
+from datetime import datetime
 from controller.conta_bancaria_controller import *
 from controller.transacao_controller import *
 from controller.categoria_controller import *
 from controller.dashboard_controller import *
-from sqlmodel import Session, SQLModel
-from fastapi import Depends
-from pydantic import BaseModel
-from datetime import datetime
-import os
-import uvicorn
+from requests.form_requests import *
 
-class ContaBancariaRequest(BaseModel):
-    nome: str
-    saldo: int
-
-class EditaContaBancariaRequest(BaseModel):
-    id: int
-    nome: str | None = None
-    saldo: int | None = None
-
-class TransacaoRequest(BaseModel):
-    descricao: str
-    valor: int
-    tipo: int
-    categoria: str
-    conta: int | None = None
-
-class EditaTransacaoRequest(BaseModel):
-    id: int
-    descricao: str | None = None
-    valor: int | None = None
-    tipo: int | None = None
-    categoria: str | None = None
-    conta: int | None = None
-
-class EditaCategoriaRequest(BaseModel):
-    id: int
-    tipo: int | None = None
-    categoria: str | None = None
-
-class CriaCategoriaRequest(BaseModel):
-    tipo: int
-    categoria: str
-    
 app.include_router(router)
 user_dependency = Annotated[dict, Depends(get_current_user)]
 db = Annotated[Session, Depends(get_db)]
@@ -162,8 +129,6 @@ async def rota_deleta_categoria(id: int, user: user_dependency, db: Session = De
     except Exception as e:
         return e
 
-
-
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="127.0.0.1", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port)

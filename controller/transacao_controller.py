@@ -30,7 +30,7 @@ async def cria_transacao(descricao, valor, tipo, categoria, conta, user, db:Sess
         cria_transacao = Transacao(
             usuario_id=user['id'],
             descricao=descricao,
-            conta_bancaria_id=conta, 
+            conta_bancaria_id=conta,
             tipo_id=tipo, 
             valor=valor, 
             categoria_id=categoria_final
