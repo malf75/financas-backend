@@ -13,6 +13,7 @@ from datetime import datetime, timedelta, timezone
 from setup.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_TIME, REFRESH_TOKEN_EXPIRE_TIME, APP_URL, email_conf
 from pydantic import BaseModel, EmailStr
 from auth.m2f import *
+from email_validator import validate_email
 
 router = APIRouter(
     prefix='/auth',
@@ -29,8 +30,6 @@ class CreateUserRequest(BaseModel):
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-## VALIDAÇÕES EM GERAL
-
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       create_user_request: CreateUserRequest):
@@ -38,12 +37,17 @@ async def create_user(db: db_dependency,
         raise HTTPException(status_code=400, detail="O campo de nome deve ser preenchido")
     if create_user_request.password == '':
         raise HTTPException(status_code=400, detail="O campo de senha deve ser preenchido")
+    try:
+        emailinfo = validate_email(create_user_request.email, check_deliverability=True)
+        email = emailinfo.normalized
+    except:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Este email não é válido")
     else:
         try:
             secret_encoded, qrcode = gera_m2f(create_user_request.email)
             create_user_model = Usuario(
                 nome=create_user_request.nome,
-                email=create_user_request.email,
+                email=email,
                 senha=bcrypt_context.hash(create_user_request.password),
                 secret_key=secret_encoded,
                 qrcode=qrcode
