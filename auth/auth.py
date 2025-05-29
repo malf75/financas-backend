@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from starlette import status
+from starlette.responses import JSONResponse
 from database.db import get_db
 from database.models import Usuario, RecuperaSenha
 from passlib.context import CryptContext
@@ -28,6 +29,8 @@ class CreateUserRequest(BaseModel):
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
+## VALIDAÇÕES EM GERAL
+
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       create_user_request: CreateUserRequest):
@@ -48,13 +51,13 @@ async def create_user(db: db_dependency,
             query = select(Usuario).where(Usuario.email == create_user_model.email)
             consulta = db.exec(query).first()
             if consulta:
-                raise HTTPException(status_code=409, detail="Email já existente")
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Email já existente")
             else:
                 db.add(create_user_model)
                 db.commit()
-                return {"201": "Usuário Criado"}
+                return JSONResponse(status_code=status.HTTP_201_CREATED, content="Usuário criado com sucesso!")
         except Exception as e:
-            raise HTTPException(status_code=e.status_code, detail=f"Erro ao criar usuário: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao criar usuário")
 
 @router.post("/login")
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -62,13 +65,13 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     try:
         user = authenticate_user(form_data.username, form_data.password, db)
         if user == False:
-            raise HTTPException(status_code=400, detail=f"Usuário não registrado")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Usuário não registrado")
         else:
             if user.primeiro_login == True:
                 return {"id":user.id}
             return {"id":user.id,"primeiro_login":user.primeiro_login}
     except Exception as e:
-        raise HTTPException(status_code=e.status_code, detail=f"Erro ao realizar login: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao realizar login")
 
 @router.get("/qr/{id}")
 async def qrcode(id: int, db: db_dependency):
@@ -77,7 +80,7 @@ async def qrcode(id: int, db: db_dependency):
         query = db.exec(statement).first()
         return {"qrcode": query.qrcode, "id":f"{id}"}
     except Exception as e:
-        return {"message":f"Erro ao requisitar qrcode: {e}"}
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao requisitar qrcode")
 
 @router.post("/m2f/{id}")
 async def m2f_verification(id: int, otp: str, db: db_dependency):
@@ -96,7 +99,7 @@ async def m2f_verification(id: int, otp: str, db: db_dependency):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="OTP inválido")
     except Exception as e:
-        return {"message":f"Erro ao verificar OTP: {e}"}
+        return {"message":f"Erro ao verificar OTP"}
     
 @router.get("/m2f/recovery/{id}")
 async def m2f_recovery(id: int, db: db_dependency):
@@ -105,7 +108,7 @@ async def m2f_recovery(id: int, db: db_dependency):
        query = db.exec(statement).first()
        return await recupera_m2f(query.email, db)
     except Exception as e:
-        return {"message":f"Erro ao recuperar m2f: {e}"}
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao recuperar m2f")
 
 def authenticate_user(email: str, password: str, db):
     try:
@@ -134,8 +137,7 @@ def create_access_token(email: str, user_id: int, db: db_dependency):
         db.commit()
         return [{"access_token": access_jwt, "token_type": "Bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_TIME} Hours"},{"refresh_token": refresh_jwt, "token_type": "Bearer", "expires_in": f"{REFRESH_TOKEN_EXPIRE_TIME} Hours"}]
     except JWTError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail=f"Erro ao gerar token o usuário:{e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Erro ao gerar token do usuário")
     
 @router.get("/user")
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
@@ -144,12 +146,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         email: str = payload.get("sub")
         user_id: int = payload.get("id")
         if email is None or user_id is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                detail="Não pode verificar o usuário.")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Não pode verificar o usuário.")
         return {"email": email, "id": user_id}
     except JWTError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail=f"Erro ao verificar o usuário:{e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Erro ao verificar o usuário")
 
 @router.post("/token/refresh")
 async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
@@ -162,16 +162,16 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_bearer)], d
         if query.refresh_token == refresh_token:
             exp_datetime = datetime.fromtimestamp(exp_timestamp, timezone.utc)
             if datetime.now(timezone.utc) > exp_datetime:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                    detail="Refresh token expirou, refaça o login.")
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expirou, refaça o login.")
             else:
                 token = create_access_token(query.email, query.id, db)
                 db.commit()
                 return token
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao verificar token")
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail=f"Ocorreu um erro ao verificar o token: {e} token: {refresh_token}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Ocorreu um erro ao verificar o token")
 
 
 @router.post("/recuperasenha")
@@ -198,10 +198,10 @@ async def token_recupera_senha(email: EmailStr, db: db_dependency):
             fm = FastMail(email_conf)
             await fm.send_message(message)
         except Exception as e:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
-        return {"message":"Email de Recuperação Enviado"}
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Erro ao enviar email!")
+        return JSONResponse(status_code=status.HTTP_200_OK, content="Email de Recuperação enviado!")
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Erro ao gerar email de recuperação: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=f"Erro ao gerar email de recuperação")
     
 @router.post("/recuperasenha/{token}")
 async def recupera_senha(token: str, nova_senha: str, db: db_dependency):
@@ -216,6 +216,6 @@ async def recupera_senha(token: str, nova_senha: str, db: db_dependency):
             query.senha = bcrypt_context.hash(nova_senha)
             db.delete(result)
             db.commit()
-            return {"message":"Senha Alterada"}
+            return JSONResponse(status_code=status.HTTP_200_OK, content="Senha Alterada com Sucesso!")
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Erro ao recuperar senha: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Erro ao recuperar senha")

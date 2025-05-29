@@ -52,8 +52,6 @@ app.include_router(router)
 user_dependency = Annotated[dict, Depends(get_current_user)]
 db = Annotated[Session, Depends(get_db)]
 
-SQLModel.metadata.create_all(engine)
-
 @app.get("/")
 def redirect_index():
     return RedirectResponse("/docs")
