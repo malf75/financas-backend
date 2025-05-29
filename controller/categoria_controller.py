@@ -9,8 +9,6 @@ async def retorna_categorias(user, db: Session):
     try:
         query = select(Categoria).where(Categoria.usuario_id == user['id'])
         categorias = db.exec(query).all()
-        if not categorias:
-            raise HTTPException(status_code=404, detail="Nenhuma categoria encontrada")
         return categorias
     except Exception as e:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar categorias {e}")
