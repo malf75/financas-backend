@@ -14,6 +14,7 @@ from setup.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_TIME, REFR
 from pydantic import BaseModel, EmailStr
 from auth.m2f import *
 from email_validator import validate_email
+from password_validator import PasswordValidator
 
 router = APIRouter(
     prefix='/auth',
@@ -28,15 +29,20 @@ class CreateUserRequest(BaseModel):
     email: EmailStr
     password: str
 
+schema = PasswordValidator()
+schema.min(8).max(100).has().uppercase().has().lowercase().has().digits().has().symbols().has().no().spaces()
+
 db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       create_user_request: CreateUserRequest):
     if create_user_request.nome == '':
-        raise HTTPException(status_code=400, detail="O campo de nome deve ser preenchido")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="O campo de nome deve ser preenchido")
     if create_user_request.password == '':
-        raise HTTPException(status_code=400, detail="O campo de senha deve ser preenchido")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="O campo de senha deve ser preenchido")
+    if not schema.validate(create_user_request.password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Erro ao validar senha, sua senha precisa ter no mínimo 8 caracteres, 1 letra maiúscula, 1 letra minúscula, 1 número, 1 símbolo")
     try:
         emailinfo = validate_email(create_user_request.email, check_deliverability=True)
         email = emailinfo.normalized
