@@ -13,7 +13,7 @@ def hugging_api_request(dados):
             f"answer in portuguese"
             "Based in this financial data: {dados}"
             "Give me a Feedback based on the expenses and earnings, and a financial hint with a max of 50 words"
-            "Don't return the promt in the response, and answer me in portuguese"
+            "Don't return the prompt in the response, and answer me in portuguese"
         )
 
         headers = {"Authorization": f"Bearer {HUGGING_TOKEN}"}

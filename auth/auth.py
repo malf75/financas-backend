@@ -43,12 +43,12 @@ async def create_user(db: db_dependency,
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="O campo de senha deve ser preenchido")
     if not schema.validate(create_user_request.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Erro ao validar senha, sua senha precisa ter no mínimo 8 caracteres, 1 letra maiúscula, 1 letra minúscula, 1 número, 1 símbolo")
-    try:
-        emailinfo = validate_email(create_user_request.email, check_deliverability=True)
-        email = emailinfo.normalized
-    except:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Este email não é válido")
     else:
+        try:
+            emailinfo = validate_email(create_user_request.email, check_deliverability=True)
+            email = emailinfo.normalized
+        except:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Este email não é válido")
         try:
             secret_encoded, qrcode = gera_m2f(create_user_request.email)
             create_user_model = Usuario(
