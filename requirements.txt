@@ -1,7 +1,7 @@
 aiosmtplib==3.0.2
 annotated-types==0.7.0
 anyio==4.5.2
-bcrypt
+bcrypt==3.2.2
 blinker==1.8.2
 build==1.2.2.post1
 CacheControl==0.14.2
@@ -43,7 +43,7 @@ mdurl==0.1.2
 more-itertools==10.6.0
 msgpack==1.1.0
 packaging==24.2
-passlib
+passlib==1.7.4
 password-validator==1.0
 pbs-installer==2025.2.12
 pkginfo==1.12.1.2
