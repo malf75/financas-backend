@@ -1,9 +1,7 @@
 from sqlmodel import select, Session
 from database.models import ContaBancaria, Usuario, Transacao
 from fastapi import HTTPException
-from fastapi.responses import JSONResponse
 from starlette import status
-from services.huggingAPI import hugging_api_request
 
 async def retorna_dashboard(user, db:Session):
     try:
@@ -20,16 +18,11 @@ async def retorna_dashboard(user, db:Session):
         statement = select(Transacao).where(Transacao.usuario_id == user["id"], Transacao.tipo_id == 2)
         query_despesas = db.exec(statement).all()
 
-        response = hugging_api_request(
-            f"Saldo_total: {saldo_total}, Contas_bancarias: {query_contas}, Receitas: {query_receitas}, Despesas: {query_despesas}"
-        )
-
         return {"dados":[
             {"saldo_conta": saldo_total},
             {"contas": query_contas},
             {"receitas": query_receitas},
-            {"despesas": query_despesas},
-            response
+            {"despesas": query_despesas}
         ]}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao retornar dados: {e}")

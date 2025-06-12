@@ -2,7 +2,6 @@ from sqlmodel import select, Session
 from database.models import ContaBancaria, Usuario, Transacao, Categoria
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
-from services.huggingAPI import hugging_api_request
 from starlette import status
 
 async def cria_transacao(descricao, valor, tipo, categoria, conta, user, db:Session):

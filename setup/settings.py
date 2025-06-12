@@ -14,7 +14,6 @@ DATABASE_URL = str(os.getenv('DATABASE_URL'))
 ALGORITHM = str(os.getenv('ALGORITHM'))
 ACCESS_TOKEN_EXPIRE_TIME = float(str(os.getenv('ACCESS_TOKEN_EXPIRE_TIME')))
 REFRESH_TOKEN_EXPIRE_TIME = int(os.getenv('REFRESH_TOKEN_EXPIRE_TIME'))
-HUGGING_TOKEN = str(os.getenv('ACCESS_TOKEN_HUGGING'))
 
 email_conf = ConnectionConfig(
     MAIL_USERNAME=str(os.getenv('MAIL_USERNAME')),
