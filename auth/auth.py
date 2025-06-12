@@ -61,13 +61,13 @@ async def create_user(db: db_dependency,
             query = select(Usuario).where(Usuario.email == create_user_model.email)
             consulta = db.exec(query).first()
             if consulta:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Email já existente")
+                raise HTTPException(status_code=status.HTTP_409_UNPROCESSABLE_ENTITY, detail="Email já existente")
             else:
                 db.add(create_user_model)
                 db.commit()
                 return JSONResponse(status_code=status.HTTP_201_CREATED, content="Usuário criado com sucesso!")
         except Exception as e:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao criar usuário")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao criar usuário: {e}")
 
 @router.post("/login")
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
