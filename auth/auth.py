@@ -67,7 +67,7 @@ async def create_user(db: db_dependency,
                 db.commit()
                 return JSONResponse(status_code=status.HTTP_201_CREATED, content="Usuário criado com sucesso!")
         except Exception as e:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao criar usuário: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao criar usuário: {e.detail}")
 
 @router.post("/login")
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
